@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAB151 — Rəy bildir</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green: #7DC242; --green-dark: #5A9A2E;
+  --bg: #0E0E0E; --bg2: #161616; --bg3: #1C1C1C;
+  --cream: #F0F0EC; --muted: #888; --border: rgba(255,255,255,0.07);
+}
+body {
+  background: var(--bg); color: var(--cream);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh; display: flex; flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+header {
+  background: rgba(14,14,14,0.95); border-bottom: 1px solid var(--border);
+  padding: 0 5vw; height: 64px; display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700;
+  letter-spacing: 0.08em; color: var(--cream); text-decoration: none;
+}
+.logo span {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 300; font-size: 9px;
+  letter-spacing: 0.22em; display: block; color: var(--green); text-transform: uppercase;
+}
+.wrap {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 48px 20px;
+}
+.card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 40px 36px; width: 100%; max-width: 480px;
+}
+.card-logo { text-align: center; margin-bottom: 10px; font-size: 24px; }
+.card-title {
+  font-size: 22px; font-weight: 700; text-align: center;
+  margin-bottom: 6px; color: var(--cream);
+}
+.card-sub { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 32px; }
+.field { margin-bottom: 20px; }
+.field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #aaa; margin-bottom: 8px; text-transform: uppercase; }
+.field input, .field textarea {
+  width: 100%; background: var(--bg3); border: 1px solid #2a2a2a;
+  color: var(--cream); font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+  padding: 12px 14px; border-radius: 6px; transition: border-color 0.2s; outline: none;
+  resize: vertical;
+}
+.field input:focus, .field textarea:focus { border-color: var(--green); }
+.field textarea { min-height: 100px; }
+/* Star picker */
+.star-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 4px; }
+.star-btn {
+  font-size: 36px; cursor: pointer; color: #333; transition: color 0.15s, transform 0.1s;
+  background: none; border: none; padding: 4px; line-height: 1;
+}
+.star-btn.active { color: var(--green); transform: scale(1.15); }
+.star-btn:hover { color: var(--green); }
+.star-hint { text-align: center; font-size: 12px; color: var(--muted); height: 18px; margin-bottom: 20px; }
+.btn-submit {
+  width: 100%; background: var(--green); color: #000;
+  font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 14px; border: none; border-radius: 6px; cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-submit:hover { background: var(--green-dark); transform: translateY(-1px); }
+.btn-submit:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+.msg { text-align: center; padding: 14px; border-radius: 6px; font-size: 14px; margin-top: 16px; }
+.msg.ok { background: rgba(125,194,66,0.1); color: var(--green); border: 1px solid rgba(125,194,66,0.25); }
+.msg.err { background: rgba(255,80,80,0.08); color: #f88; border: 1px solid rgba(255,80,80,0.2); }
+.done-wrap { text-align: center; }
+.done-icon { font-size: 56px; margin-bottom: 16px; }
+.done-title { font-size: 24px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+.done-text { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.7; }
+.btn-home {
+  display: inline-block; color: var(--cream); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.08em; text-decoration: none;
+  border: 1px solid #333; border-radius: 6px; padding: 10px 24px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-home:hover { border-color: var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+<header>
+  <a href="/" class="logo">LAB151<span>beauty chargers</span></a>
+</header>
+
+<div class="wrap">
+  <div class="card">
+
+    <!-- Form -->
+    <div id="formWrap">
+      <div class="card-logo">⭐</div>
+      <h1 class="card-title" id="cardTitle">Rəyinizi bildirin</h1>
+      <p class="card-sub" id="cardSub">Xidmətimiz necə oldu? Biznə bildirin!</p>
+
+      <div class="field" style="margin-bottom:8px">
+        <label id="lblRating">Qiymət</label>
+        <div class="star-row" id="starRow">
+          <button class="star-btn" data-v="1" onclick="setRating(1)">★</button>
+          <button class="star-btn" data-v="2" onclick="setRating(2)">★</button>
+          <button class="star-btn" data-v="3" onclick="setRating(3)">★</button>
+          <button class="star-btn" data-v="4" onclick="setRating(4)">★</button>
+          <button class="star-btn" data-v="5" onclick="setRating(5)">★</button>
+        </div>
+        <div class="star-hint" id="starHint"></div>
+      </div>
+
+      <div class="field">
+        <label id="lblName">Adınız</label>
+        <input type="text" id="revName" maxlength="80" placeholder="Adınız" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label id="lblComment">Şərh (ixtiyari)</label>
+        <textarea id="revComment" maxlength="500" placeholder="Xidmət haqqında fikirlərinizi yazın..."></textarea>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitReview()" disabled id="submitBtn">
+        <span id="submitTxt">Göndər</span>
+      </button>
+      <div id="errMsg"></div>
+    </div>
+
+    <!-- Done state -->
+    <div id="doneWrap" class="done-wrap" style="display:none">
+      <div class="done-icon">🎉</div>
+      <div class="done-title" id="doneTitle">Təşəkkür edirik!</div>
+      <p class="done-text" id="doneText">Rəyiniz qeyd edildi. Sizinlə yenidən görüşməyə ürəkdən şadıq!</p>
+      <a href="/" class="btn-home" id="doneHome">Ana səhifəyə qayıt →</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const HINTS = {
+  az: ['Çox pis', 'Pis', 'Orta', 'Yaxşı', 'Əla!'],
+  en: ['Very bad', 'Bad', 'OK', 'Good', 'Excellent!'],
+  ru: ['Очень плохо', 'Плохо', 'Нормально', 'Хорошо', 'Отлично!'],
+};
+const TX = {
+  az: {
+    cardTitle:'Rəyinizi bildirin', cardSub:'Xidmətimiz necə oldu? Biznə bildirin!',
+    lblRating:'Qiymət', lblName:'Adınız', lblComment:'Şərh (ixtiyari)',
+    namePh:'Adınız', commentPh:'Xidmət haqqında fikirlərinizi yazın...',
+    submitTxt:'Göndər', sending:'Göndərilir...',
+    errNoRating:'Zəhmət olmasa qiymət seçin.',
+    errAlready:'Bu rezervasiya üçün artıq rəy bildirilib.',
+    errFail:'Xəta baş verdi. Yenidən cəhd edin.',
+    doneTitle:'Təşəkkür edirik!', doneText:'Rəyiniz qeyd edildi. Sizinlə yenidən görüşməyə ürəkdən şadıq!',
+    doneHome:'Ana səhifəyə qayıt →',
+  },
+  en: {
+    cardTitle:'Leave a review', cardSub:'How was your experience? Let us know!',
+    lblRating:'Rating', lblName:'Your name', lblComment:'Comment (optional)',
+    namePh:'Your name', commentPh:'Share your thoughts about the service...',
+    submitTxt:'Submit', sending:'Sending...',
+    errNoRating:'Please select a star rating.',
+    errAlready:'A review has already been submitted for this booking.',
+    errFail:'Something went wrong. Please try again.',
+    doneTitle:'Thank you!', doneText:'Your review has been recorded. We look forward to seeing you again!',
+    doneHome:'Back to homepage →',
+  },
+  ru: {
+    cardTitle:'Оставьте отзыв', cardSub:'Как вам понравился наш сервис?',
+    lblRating:'Оценка', lblName:'Ваше имя', lblComment:'Комментарий (необязательно)',
+    namePh:'Ваше имя', commentPh:'Расскажите о вашем опыте...',
+    submitTxt:'Отправить', sending:'Отправляем...',
+    errNoRating:'Пожалуйста, выберите оценку.',
+    errAlready:'Для этого бронирования отзыв уже оставлен.',
+    errFail:'Произошла ошибка. Попробуйте ещё раз.',
+    doneTitle:'Спасибо!', doneText:'Ваш отзыв записан. Будем рады видеть вас снова!',
+    doneHome:'На главную →',
+  }
+};
+
+let rating = 0;
+let lang = 'az';
+let bookingId = '';
+
+function detectLang() {
+  const bl = (navigator.language || 'az').toLowerCase();
+  if (bl.startsWith('ru')) return 'ru';
+  if (bl.startsWith('en')) return 'en';
+  return 'az';
+}
+
+function applyLang() {
+  const tx = TX[lang];
+  const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  const ph  = (id, v) => { const e = document.getElementById(id); if(e) e.placeholder = v; };
+  set('cardTitle', tx.cardTitle); set('cardSub', tx.cardSub);
+  set('lblRating', tx.lblRating); set('lblName', tx.lblName); set('lblComment', tx.lblComment);
+  ph('revName', tx.namePh); ph('revComment', tx.commentPh);
+  set('submitTxt', tx.submitTxt);
+  set('doneTitle', tx.doneTitle); set('doneText', tx.doneText); set('doneHome', tx.doneHome);
+  document.documentElement.lang = lang;
+  if (rating) document.getElementById('starHint').textContent = HINTS[lang][rating - 1];
+}
+
+function setRating(v) {
+  rating = v;
+  document.querySelectorAll('.star-btn').forEach((b, i) =>
+    b.classList.toggle('active', i < v)
+  );
+  document.getElementById('starHint').textContent = HINTS[lang][v - 1];
+  document.getElementById('submitBtn').disabled = false;
+}
+
+async function submitReview() {
+  const tx = TX[lang];
+  if (!rating) { showErr(tx.errNoRating); return; }
+
+  const btn  = document.getElementById('submitBtn');
+  const name = document.getElementById('revName').value.trim();
+  const comment = document.getElementById('revComment').value.trim();
+
+  btn.disabled = true;
+  document.getElementById('submitTxt').textContent = tx.sending;
+  document.getElementById('errMsg').innerHTML = '';
+
+  try {
+    const res = await fetch('/api/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: bookingId, rating, comment, reviewer_name: name }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('formWrap').style.display = 'none';
+      document.getElementById('doneWrap').style.display = 'block';
+    } else if (data.error === 'already_reviewed') {
+      showErr(tx.errAlready);
+      btn.disabled = false;
+      document.getElementById('submitTxt').textContent = tx.submitTxt;
+    } else {
+      showErr(tx.errFail);
+      btn.disabled = false;
+      document.getElementById('submitTxt').textContent = tx.submitTxt;
+    }
+  } catch(e) {
+    showErr(tx.errFail);
+    btn.disabled = false;
+    document.getElementById('submitTxt').textContent = tx.submitTxt;
+  }
+}
+
+function showErr(msg) {
+  document.getElementById('errMsg').innerHTML = `<div class="msg err">${msg}</div>`;
+}
+
+// Read booking_id from URL ?booking_id=XXX
+bookingId = new URLSearchParams(window.location.search).get('booking_id') || '';
+
+lang = detectLang();
+applyLang();
+</script>
+</body>
+</html>

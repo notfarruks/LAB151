@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAB151 — beauty chargers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:       #7DC242;
+  --green-dark:  #5A9A2E;
+  --green-glow:  rgba(125,194,66,0.12);
+  --bg:          #0E0E0E;
+  --bg2:         #161616;
+  --bg3:         #1C1C1C;
+  --cream:       #F0F0EC;
+  --muted:       #888;
+  --border:      rgba(255,255,255,0.07);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,14,14,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 5vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 12px;
+}
+
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.logo span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  display: block;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.lang-toggle { display: flex; gap: 2px; }
+.lang-btn {
+  background: none;
+  border: 1px solid #333;
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+.lang-btn.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
+
+.btn-book {
+  display: inline-block;
+  background: var(--green);
+  color: #000;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 10px 22px;
+  border-radius: 3px;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+.btn-book:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 5vw;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -20%; right: -10%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(125,194,66,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--green);
+  border: 1px solid rgba(125,194,66,0.3);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 36px;
+}
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(42px, 7vw, 88px);
+  font-weight: 700;
+  line-height: 1.0;
+  color: var(--cream);
+  max-width: 780px;
+  margin-bottom: 28px;
+  letter-spacing: -0.02em;
+}
+.hero h1 em { color: var(--green); font-style: normal; }
+.hero p {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--muted);
+  max-width: 460px;
+  margin-bottom: 48px;
+  line-height: 1.75;
+}
+.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.btn-outline {
+  display: inline-block;
+  background: none;
+  color: var(--cream);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 10px 22px;
+  border-radius: 3px;
+  border: 1px solid #333;
+  transition: border-color 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.btn-outline:hover { border-color: var(--green); color: var(--green); }
+.hero-stats {
+  display: flex;
+  gap: 48px;
+  margin-top: 80px;
+  flex-wrap: wrap;
+}
+.hero-stat-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.hero-stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+/* ── SECTION COMMON ── */
+section { padding: 100px 5vw; }
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: clamp(26px, 3.5vw, 40px);
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 56px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* ── SERVICES ── */
+.services-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.service-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 20px;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.service-card:hover { border-color: var(--green); background: var(--green-glow); }
+.service-icon { font-size: 28px; }
+.service-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+.service-count { font-size: 11px; color: var(--muted); }
+
+/* ── TEAM ── */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+.master-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px 22px 22px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.master-card:hover { border-color: rgba(125,194,66,0.3); }
+.master-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--green-glow);
+  border: 2px solid rgba(125,194,66,0.3);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+}
+.master-name { font-size: 15px; font-weight: 600; color: var(--cream); margin-bottom: 4px; }
+.master-specialty { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.stars { display: flex; justify-content: center; gap: 3px; margin-bottom: 6px; }
+.star { font-size: 14px; color: #333; }
+.star.lit { color: var(--green); }
+.master-rating-text { font-size: 11px; color: var(--muted); }
+
+/* ── REVIEWS ── */
+.reviews-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.review-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+}
+.review-stars { display: flex; gap: 3px; margin-bottom: 12px; }
+.review-star { font-size: 14px; color: var(--green); }
+.review-comment { font-size: 14px; color: var(--cream); line-height: 1.65; margin-bottom: 14px; font-style: italic; }
+.review-meta { font-size: 12px; color: var(--muted); }
+.review-meta strong { color: #aaa; }
+.no-reviews { color: var(--muted); font-size: 14px; }
+
+/* ── HOW IT WORKS ── */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+@media (max-width: 700px) { .steps-grid { grid-template-columns: 1fr; } }
+.step-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 48px;
+  font-weight: 700;
+  color: rgba(125,194,66,0.12);
+  line-height: 1;
+  margin-bottom: -10px;
+}
+.step-icon { font-size: 26px; margin-bottom: 14px; display: block; }
+.step h3 { font-size: 17px; font-weight: 600; color: var(--cream); margin-bottom: 10px; }
+.step p { font-size: 13px; color: var(--muted); line-height: 1.75; }
+
+/* ── CONTACT ── */
+.contact-section { background: var(--bg2); border-top: 1px solid var(--border); }
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+}
+@media (max-width: 768px) { .contact-grid { grid-template-columns: 1fr; gap: 40px; } }
+.contact-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--green); margin-bottom: 16px;
+}
+.contact-block h3 {
+  font-size: 17px; font-weight: 600;
+  color: var(--cream); margin-bottom: 8px; line-height: 1.4;
+}
+.contact-block p { font-size: 13px; color: var(--muted); line-height: 1.8; }
+.phone-link {
+  display: block; font-family: 'Space Mono', monospace;
+  font-size: 18px; font-weight: 700;
+  color: var(--cream); text-decoration: none;
+  letter-spacing: 0.03em; margin-bottom: 8px;
+  transition: color 0.2s;
+}
+.phone-link:hover { color: var(--green); }
+.hours-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--muted);
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.hours-row:last-child { border-bottom: none; }
+.hours-row .day { color: #bbb; }
+.map-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--green); font-size: 13px; text-decoration: none;
+  margin-top: 14px; transition: color 0.2s;
+}
+.map-link:hover { color: #fff; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 28px 5vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: 0.08em;
+}
+.footer-copy { font-size: 11px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 38px; }
+  .hero-stats { gap: 28px; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a href="/" class="logo">LAB151<span>beauty chargers</span></a>
+  <div class="header-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('az')">AZ</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('ru')">RU</button>
+    </div>
+    <a href="/book" class="btn-book" id="hdrBook">Rezervasiya et</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag" id="heroTag">Bakı · Dermatologiya &amp; Gözəllik</div>
+  <h1 id="heroH1">Gözəllik<br><em>yenidən şarj</em><br>olur.</h1>
+  <p id="heroP">LAB151 — Bakının ən müasir gözəllik mərkəzi. Lazer epilasiya, kosmetologiya, dırnaq studiyası, saç studiyası və daha çox. 24/7 onlayn rezervasiya.</p>
+  <div class="hero-actions">
+    <a href="/book" class="btn-book" id="heroBtn">Rezervasiya et →</a>
+    <a href="#services" class="btn-outline" id="heroExplore">Xidmətlər</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-num" id="statServices">157+</div>
+      <div class="hero-stat-label" id="statServicesL">Xidmət</div>
+    </div>
+    <div>
+      <div class="hero-stat-num" id="statMasters">10+</div>
+      <div class="hero-stat-label" id="statMastersL">Mütəxəssis</div>
+    </div>
+    <div>
+      <div class="hero-stat-num">24/7</div>
+      <div class="hero-stat-label" id="statBookingL">Onlayn rezervasiya</div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services-section" id="services">
+  <div class="eyebrow" id="svcEyebrow">Xidmətlər</div>
+  <div class="section-title" id="svcTitle">Nə edirik</div>
+  <div class="services-grid" id="servicesGrid">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="eyebrow" id="howEyebrow">Sadə proses</div>
+  <div class="section-title" id="howTitle">Necə işləyir</div>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">01</div>
+      <span class="step-icon">🌐</span>
+      <h3 id="s1h">Xidmət seçin</h3>
+      <p id="s1p">Veb-saytımıza daxil olun, xidməti, ustanı, tarixi və vaxtı seçin. Real vaxtda mövcudluq.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <span class="step-icon">✅</span>
+      <h3 id="s2h">Məlumatları daxil edin</h3>
+      <p id="s2p">Adınızı, nömrənizi və e-poçtunuzu daxil edin. Bir dəqiqədən az çəkir.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <span class="step-icon">📧</span>
+      <h3 id="s3h">Təsdiq alın</h3>
+      <p id="s3p">E-poçtunuza ani təsdiq gəlir. Görüşdən 24 saat əvvəl xatırlatma göndərilir.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="eyebrow" id="teamEyebrow">Komanda</div>
+  <div class="section-title" id="teamTitle">Mütəxəssislərimiz</div>
+  <div class="team-grid" id="teamGrid"><!-- populated by JS --></div>
+</section>
+
+<!-- REVIEWS -->
+<section class="reviews-section" id="reviews">
+  <div class="eyebrow" id="revEyebrow">Rəylər</div>
+  <div class="section-title" id="revTitle">Müştərilərimiz deyir</div>
+  <div class="reviews-grid" id="reviewsGrid"><!-- populated by JS --></div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <div class="eyebrow" id="ctcEyebrow">Əlaqə</div>
+  <div class="section-title" id="ctcTitle">Bizi tapın</div>
+  <div class="contact-grid">
+
+    <div class="contact-block">
+      <div class="contact-label" id="lblLocation">Ünvan</div>
+      <h3 id="ctcAddr">Bakı, Azərbaycan</h3>
+      <a href="https://maps.google.com/?q=LAB151+Baku" target="_blank" rel="noopener" class="map-link" id="ctcMap">🗺 Google Maps →</a>
+    </div>
+
+    <div class="contact-block">
+      <div class="contact-label" id="lblHours">İş saatları</div>
+      <div class="hours-row"><span class="day" id="dayMon">Bazar ertəsi</span><span>10:00 – 20:00</span></div>
+      <div class="hours-row"><span class="day" id="dayTue">Çərşənbə axşamı</span><span>10:00 – 20:00</span></div>
+      <div class="hours-row"><span class="day" id="dayWed">Çərşənbə</span><span>10:00 – 20:00</span></div>
+      <div class="hours-row"><span class="day" id="dayThu">Cümə axşamı</span><span>10:00 – 20:00</span></div>
+      <div class="hours-row"><span class="day" id="dayFri">Cümə</span><span>10:00 – 20:00</span></div>
+      <div class="hours-row"><span class="day" id="daySat">Şənbə</span><span>10:00 – 20:00</span></div>
+      <div class="hours-row"><span class="day" id="daySun">Bazar</span><span id="sunVal">Bağlı</span></div>
+    </div>
+
+    <div class="contact-block">
+      <div class="contact-label" id="lblContact">Nömrələr</div>
+      <a href="tel:+994775734545" class="phone-link">+994 77 573 45 45</a>
+      <p id="phNote1" style="font-size:12px;color:var(--muted);margin-bottom:16px">Kosmetologiya, Lazer, ICOONE, Masaj, Kirpik/Qaş</p>
+      <a href="tel:+994774434545" class="phone-link">+994 77 443 45 45</a>
+      <p id="phNote2" style="font-size:12px;color:var(--muted)">Manikür, Pedikür, Saç Studio</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">LAB151</div>
+  <div class="footer-copy" id="footerCopy">© 2025 LAB151 beauty chargers. Bütün hüquqlar qorunur.</div>
+</footer>
+
+<script>
+// ── i18n ──────────────────────────────────────────────────────────────────────
+const TX = {
+  az: {
+    hdrBook:'Rezervasiya et', heroTag:'Bakı · Dermatologiya & Gözəllik',
+    heroH1:'Gözəllik<br><em>yenidən şarj</em><br>olur.',
+    heroP:'LAB151 — Bakının ən müasir gözəllik mərkəzi. Lazer epilasiya, kosmetologiya, dırnaq studiyası, saç studiyası və daha çox. 24/7 onlayn rezervasiya.',
+    heroBtn:'Rezervasiya et →', heroExplore:'Xidmətlər',
+    statServicesL:'Xidmət', statMastersL:'Mütəxəssis', statBookingL:'Onlayn rezervasiya',
+    svcEyebrow:'Xidmətlər', svcTitle:'Nə edirik',
+    howEyebrow:'Sadə proses', howTitle:'Necə işləyir',
+    s1h:'Xidmət seçin', s1p:'Veb-saytımıza daxil olun, xidməti, ustanı, tarixi və vaxtı seçin. Real vaxtda mövcudluq.',
+    s2h:'Məlumatları daxil edin', s2p:'Adınızı, nömrənizi və e-poçtunuzu daxil edin. Bir dəqiqədən az çəkir.',
+    s3h:'Təsdiq alın', s3p:'E-poçtunuza ani təsdiq gəlir. Görüşdən 24 saat əvvəl xatırlatma göndərilir.',
+    teamEyebrow:'Komanda', teamTitle:'Mütəxəssislərimiz',
+    revEyebrow:'Rəylər', revTitle:'Müştərilərimiz deyir', noReviews:'Hələ rəy yoxdur.',
+    ctcEyebrow:'Əlaqə', ctcTitle:'Bizi tapın',
+    lblLocation:'Ünvan', ctcAddr:'Bakı, Azərbaycan', ctcMap:'🗺 Google Maps →',
+    lblHours:'İş saatları', lblContact:'Nömrələr',
+    phNote1:'Kosmetologiya, Lazer, ICOONE, Masaj, Kirpik/Qaş',
+    phNote2:'Manikür, Pedikür, Saç Studio',
+    dayMon:'Bazar ertəsi', dayTue:'Çərşənbə axşamı', dayWed:'Çərşənbə',
+    dayThu:'Cümə axşamı', dayFri:'Cümə', daySat:'Şənbə', daySun:'Bazar',
+    sunVal:'Bağlı', footerCopy:'© 2025 LAB151 beauty chargers. Bütün hüquqlar qorunur.',
+    bookNow:'Rezervasiya et', svcAt:' xidmətlər',
+    ratAvg:'ort. bal', noRating:'hələ rəy yox',
+  },
+  en: {
+    hdrBook:'Book Now', heroTag:'Baku · Dermatology & Beauty',
+    heroH1:'Beauty<br><em>recharged.</em>',
+    heroP:'LAB151 — Baku\'s most advanced beauty centre. Laser hair removal, cosmetology, nail studio, hair studio and more. 24/7 online booking.',
+    heroBtn:'Book an Appointment →', heroExplore:'Services',
+    statServicesL:'Services', statMastersL:'Specialists', statBookingL:'Online booking',
+    svcEyebrow:'Services', svcTitle:'What we do',
+    howEyebrow:'Simple process', howTitle:'How it works',
+    s1h:'Choose your service', s1p:'Visit our website, pick your service, master, date and time. Real-time availability.',
+    s2h:'Enter your details', s2p:'Enter your name, phone number and email. Takes less than a minute.',
+    s3h:'Get confirmed', s3p:'An instant confirmation email is sent to you. A reminder follows 24 hours before your appointment.',
+    teamEyebrow:'Team', teamTitle:'Our Specialists',
+    revEyebrow:'Reviews', revTitle:'What our clients say', noReviews:'No reviews yet.',
+    ctcEyebrow:'Contact', ctcTitle:'Find us',
+    lblLocation:'Address', ctcAddr:'Baku, Azerbaijan', ctcMap:'🗺 Google Maps →',
+    lblHours:'Working hours', lblContact:'Phone numbers',
+    phNote1:'Cosmetology, Laser, ICOONE, Massage, Lashes/Brows',
+    phNote2:'Manicure, Pedicure, Hair Studio',
+    dayMon:'Monday', dayTue:'Tuesday', dayWed:'Wednesday',
+    dayThu:'Thursday', dayFri:'Friday', daySat:'Saturday', daySun:'Sunday',
+    sunVal:'Closed', footerCopy:'© 2025 LAB151 beauty chargers. All rights reserved.',
+    bookNow:'Book Now', svcAt:' services',
+    ratAvg:'avg rating', noRating:'no reviews yet',
+  },
+  ru: {
+    hdrBook:'Записаться', heroTag:'Баку · Дерматология и Красота',
+    heroH1:'Красота<br><em>перезаряжается.</em>',
+    heroP:'LAB151 — самый современный центр красоты в Баку. Лазерная эпиляция, косметология, ногтевая студия, студия волос и многое другое. Онлайн-запись 24/7.',
+    heroBtn:'Записаться →', heroExplore:'Услуги',
+    statServicesL:'Услуги', statMastersL:'Специалисты', statBookingL:'Онлайн-запись',
+    svcEyebrow:'Услуги', svcTitle:'Что мы делаем',
+    howEyebrow:'Простой процесс', howTitle:'Как это работает',
+    s1h:'Выберите услугу', s1p:'Зайдите на сайт, выберите услугу, мастера, дату и время. Актуальное расписание.',
+    s2h:'Введите данные', s2p:'Укажите имя, номер телефона и email. Займёт меньше минуты.',
+    s3h:'Получите подтверждение', s3p:'На email придёт мгновенное подтверждение. За 24 часа до визита — напоминание.',
+    teamEyebrow:'Команда', teamTitle:'Наши специалисты',
+    revEyebrow:'Отзывы', revTitle:'Что говорят клиенты', noReviews:'Отзывов пока нет.',
+    ctcEyebrow:'Контакт', ctcTitle:'Найдите нас',
+    lblLocation:'Адрес', ctcAddr:'Баку, Азербайджан', ctcMap:'🗺 Google Maps →',
+    lblHours:'Часы работы', lblContact:'Телефоны',
+    phNote1:'Косметология, Лазер, ICOONE, Массаж, Ресницы/Брови',
+    phNote2:'Маникюр, Педикюр, Студия волос',
+    dayMon:'Понедельник', dayTue:'Вторник', dayWed:'Среда',
+    dayThu:'Четверг', dayFri:'Пятница', daySat:'Суббота', daySun:'Воскресенье',
+    sunVal:'Выходной', footerCopy:'© 2025 LAB151 beauty chargers. Все права защищены.',
+    bookNow:'Записаться', svcAt:' услуг',
+    ratAvg:'средняя оценка', noRating:'отзывов пока нет',
+  }
+};
+
+const CAT_ICONS = {
+  'lazer epilasiya':'✨','icoone':'💆','kirpik':'👁',
+  'kosmetologiya':'💉','manikür':'💅','pedikür':'🦶',
+  'saç studio':'✂️','masaj':'🤲','qaş barı':'🪄'
+};
+
+let lang = 'az';
+let appData = null;
+let reviewsData = [];
+
+// ── Set language ──────────────────────────────────────────────────────────────
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b =>
+    b.classList.toggle('active', b.textContent === l.toUpperCase())
+  );
+  const tx = TX[l];
+  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  const txt = (id, val)  => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+  set('hdrBook', tx.hdrBook);
+  set('heroTag', tx.heroTag);
+  set('heroH1', tx.heroH1);
+  txt('heroP', tx.heroP);
+  set('heroBtn', tx.heroBtn);
+  txt('heroExplore', tx.heroExplore);
+  txt('statServicesL', tx.statServicesL);
+  txt('statMastersL', tx.statMastersL);
+  txt('statBookingL', tx.statBookingL);
+  txt('svcEyebrow', tx.svcEyebrow);
+  txt('svcTitle', tx.svcTitle);
+  txt('howEyebrow', tx.howEyebrow);
+  txt('howTitle', tx.howTitle);
+  txt('s1h', tx.s1h); txt('s1p', tx.s1p);
+  txt('s2h', tx.s2h); txt('s2p', tx.s2p);
+  txt('s3h', tx.s3h); txt('s3p', tx.s3p);
+  txt('teamEyebrow', tx.teamEyebrow);
+  txt('teamTitle', tx.teamTitle);
+  txt('revEyebrow', tx.revEyebrow);
+  txt('revTitle', tx.revTitle);
+  txt('ctcEyebrow', tx.ctcEyebrow);
+  txt('ctcTitle', tx.ctcTitle);
+  txt('lblLocation', tx.lblLocation);
+  set('ctcAddr', tx.ctcAddr);
+  txt('ctcMap', tx.ctcMap);
+  txt('lblHours', tx.lblHours);
+  txt('lblContact', tx.lblContact);
+  txt('phNote1', tx.phNote1);
+  txt('phNote2', tx.phNote2);
+  txt('dayMon', tx.dayMon); txt('dayTue', tx.dayTue); txt('dayWed', tx.dayWed);
+  txt('dayThu', tx.dayThu); txt('dayFri', tx.dayFri); txt('daySat', tx.daySat);
+  txt('daySun', tx.daySun); txt('sunVal', tx.sunVal);
+  txt('footerCopy', tx.footerCopy);
+  document.documentElement.lang = l;
+
+  // Re-render dynamic sections with new language
+  if (appData) {
+    renderServices();
+    renderTeam();
+  }
+  renderReviews();
+}
+
+// ── Load data ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const [dataRes, reviewsRes] = await Promise.all([
+      fetch('/api/data'),
+      fetch('/api/reviews'),
+    ]);
+    appData      = await dataRes.json();
+    const revJson = await reviewsRes.json();
+    reviewsData  = revJson.reviews || [];
+
+    // Update stats
+    const sEl = document.getElementById('statServices');
+    const mEl = document.getElementById('statMasters');
+    if (sEl) sEl.textContent = (appData.services?.length || 0) + '+';
+    if (mEl) mEl.textContent = (appData.masters?.length || 0) + '+';
+
+    renderServices();
+    renderTeam();
+    renderReviews();
+  } catch(e) {
+    console.error('loadData failed', e);
+  }
+}
+
+// ── Services grid ─────────────────────────────────────────────────────────────
+function renderServices() {
+  if (!appData) return;
+  const tx = TX[lang];
+  const cats = appData.categories || [];
+  const html = cats.map(cat => {
+    const count = (appData.services || []).filter(s => s.category === cat).length;
+    const icon  = CAT_ICONS[cat.toLowerCase()] || '✨';
+    const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+    return `<a href="/book" class="service-card">
+      <div class="service-icon">${icon}</div>
+      <div class="service-name">${label}</div>
+      <div class="service-count">${count}${tx.svcAt}</div>
+    </a>`;
+  }).join('');
+  document.getElementById('servicesGrid').innerHTML = html || '<p style="color:var(--muted)">Yüklənir...</p>';
+}
+
+// ── Team grid ─────────────────────────────────────────────────────────────────
+function renderTeam() {
+  if (!appData) return;
+  const tx = TX[lang];
+  const masters = appData.masters || [];
+  if (!masters.length) {
+    document.getElementById('teamGrid').innerHTML = '';
+    return;
+  }
+  const html = masters.map(m => {
+    const mRevs = reviewsData.filter(r => r.master_id === m.id);
+    const avg   = mRevs.length
+      ? (mRevs.reduce((s, r) => s + r.rating, 0) / mRevs.length).toFixed(1)
+      : null;
+    const stars = [1,2,3,4,5].map(i =>
+      `<span class="star${avg && i <= Math.round(avg) ? ' lit' : ''}">★</span>`
+    ).join('');
+    const ratingTxt = avg
+      ? `${avg} ${tx.ratAvg} (${mRevs.length})`
+      : tx.noRating;
+    return `<div class="master-card">
+      <div class="master-avatar">${m.initials}</div>
+      <div class="master-name">${m.name}</div>
+      <div class="master-specialty">${m.specialty}</div>
+      <div class="stars">${stars}</div>
+      <div class="master-rating-text">${ratingTxt}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('teamGrid').innerHTML = html;
+}
+
+// ── Reviews grid ──────────────────────────────────────────────────────────────
+function renderReviews() {
+  const tx  = TX[lang];
+  const el  = document.getElementById('reviewsGrid');
+  if (!reviewsData.length) {
+    el.innerHTML = `<p class="no-reviews">${tx.noReviews}</p>`;
+    return;
+  }
+  // Show up to 6 most recent
+  const show = [...reviewsData].reverse().slice(0, 6);
+  el.innerHTML = show.map(r => {
+    const stars = [1,2,3,4,5].map(i =>
+      `<span class="review-star">${i <= r.rating ? '★' : '☆'}</span>`
+    ).join('');
+    const who  = r.reviewer_name || 'Müştəri';
+    const date = r.date ? ` · ${r.date}` : '';
+    return `<div class="review-card">
+      <div class="review-stars">${stars}</div>
+      ${r.comment ? `<p class="review-comment">"${r.comment}"</p>` : ''}
+      <div class="review-meta"><strong>${who}</strong>${r.master_name ? ' → ' + r.master_name : ''}${date}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(function() {
+  const bl = (navigator.language || 'az').toLowerCase();
+  if (bl.startsWith('ru')) setLang('ru');
+  else if (bl.startsWith('en')) setLang('en');
+  else setLang('az');
+})();
+
+loadData();
+</script>
+</body>
+</html>

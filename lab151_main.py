@@ -97,9 +97,10 @@ SERVICES      = {}   # {id: {category, name, price}}
 DURATIONS     = {}   # {(master_id, service_id): minutes}
 CATEGORIES    = []
 BLOCKED_DATES = set()
+REVIEWS       = []   # [{booking_id, master_id, master_name, rating, comment, reviewer_name, date}]
 
 def load_data():
-    global MASTERS, SERVICES, DURATIONS, CATEGORIES, BLOCKED_DATES
+    global MASTERS, SERVICES, DURATIONS, CATEGORIES, BLOCKED_DATES, REVIEWS
     try:
         client = get_sheets()
         db = client.open("LAB151_DB")
@@ -148,8 +149,26 @@ def load_data():
         except gspread.exceptions.WorksheetNotFound:
             pass
 
+        new_reviews = []
+        try:
+            for row in db.worksheet("Reviews").get_all_records():
+                bid = str(row.get("booking_id","")).strip()
+                if bid:
+                    new_reviews.append({
+                        "booking_id":    bid,
+                        "master_id":     str(row.get("master_id","")).strip(),
+                        "master_name":   str(row.get("master_name","")).strip(),
+                        "rating":        int(row.get("rating", 5)),
+                        "comment":       str(row.get("comment","")).strip(),
+                        "reviewer_name": str(row.get("reviewer_name","")).strip(),
+                        "date":          str(row.get("date","")).strip(),
+                    })
+        except gspread.exceptions.WorksheetNotFound:
+            pass
+
         MASTERS, SERVICES, DURATIONS = new_masters, new_services, new_durations
         CATEGORIES, BLOCKED_DATES    = new_cats, new_blocked
+        REVIEWS                      = new_reviews
         log("info", "Data loaded", masters=len(MASTERS), services=len(SERVICES))
     except Exception as e:
         log("error", "load_data failed", error=str(e))
@@ -567,6 +586,71 @@ async def api_data():
         "master_services": master_services_out,
     })
 
+# ── GET /api/reviews ──────────────────────────────────────────────────────────
+@app.get("/api/reviews")
+async def api_reviews(master_id: str = ""):
+    out = REVIEWS if not master_id else [r for r in REVIEWS if r["master_id"] == master_id]
+    return JSONResponse({"reviews": out})
+
+# ── POST /api/review ──────────────────────────────────────────────────────────
+@app.post("/api/review")
+async def api_post_review(req: Request):
+    try:
+        body = await req.json()
+        booking_id    = str(body.get("booking_id","")).strip()
+        rating        = int(body.get("rating", 0))
+        comment       = str(body.get("comment","")).strip()[:500]
+        reviewer_name = str(body.get("reviewer_name","")).strip()[:80]
+
+        if not booking_id or rating < 1 or rating > 5:
+            raise HTTPException(400, "booking_id and rating (1-5) required")
+
+        # Prevent duplicate reviews for the same booking
+        if any(r["booking_id"] == booking_id for r in REVIEWS):
+            return JSONResponse({"ok": False, "error": "already_reviewed"})
+
+        # Look up booking to get master info
+        master_id   = ""
+        master_name = ""
+        try:
+            client = get_sheets()
+            db     = client.open("LAB151_DB")
+            sheet  = db.worksheet("Bookings")
+            all_rows = sheet.get_all_records()
+            for row in all_rows:
+                if str(row.get("booking_id","")).strip() == booking_id:
+                    master_id   = str(row.get("master_id","")).strip()
+                    master_name = MASTERS.get(master_id, {}).get("name", "")
+                    break
+            review_row = [
+                booking_id, master_id, master_name, rating,
+                comment, reviewer_name,
+                datetime.now().strftime("%Y-%m-%d"),
+            ]
+            try:
+                reviews_ws = db.worksheet("Reviews")
+            except gspread.exceptions.WorksheetNotFound:
+                reviews_ws = db.add_worksheet("Reviews", rows=500, cols=7)
+                reviews_ws.append_row(["booking_id","master_id","master_name","rating","comment","reviewer_name","date"])
+            reviews_ws.append_row(review_row)
+        except Exception as e:
+            log("error", "review write failed", error=str(e))
+            raise HTTPException(500, "Failed to save review")
+
+        # Update in-memory cache
+        REVIEWS.append({
+            "booking_id": booking_id, "master_id": master_id,
+            "master_name": master_name, "rating": rating,
+            "comment": comment, "reviewer_name": reviewer_name,
+            "date": datetime.now().strftime("%Y-%m-%d"),
+        })
+        return JSONResponse({"ok": True})
+    except HTTPException:
+        raise
+    except Exception as e:
+        log("error", "api_post_review failed", error=str(e))
+        raise HTTPException(500, str(e))
+
 # ── GET /api/slots ─────────────────────────────────────────────────────────────
 @app.get("/api/slots")
 async def api_slots(master_id: str, service_id: str, date: str):
@@ -823,6 +907,14 @@ async def serve_booking_page():
     if html_path.exists():
         return HTMLResponse(html_path.read_text(encoding="utf-8"))
     raise HTTPException(404, "Booking page not found")
+
+# ── GET /review — post-booking review form ─────────────────────────────────────
+@app.get("/review", response_class=HTMLResponse)
+async def serve_review_page():
+    html_path = Path(__file__).parent / "lab151_review.html"
+    if html_path.exists():
+        return HTMLResponse(html_path.read_text(encoding="utf-8"))
+    raise HTTPException(404, "Review page not found")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # WHATSAPP WEBHOOK  (greeter only — sends booking link)

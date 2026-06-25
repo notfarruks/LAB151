@@ -190,6 +190,7 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fb);font-si
       <button class="lang-btn" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('ru')">RU</button>
     </div>
+    <a href="/" style="font-size:12px;font-weight:600;color:#888;text-decoration:none;letter-spacing:.05em;padding:8px 10px;white-space:nowrap" id="aboutLink">Haqqımızda</a>
     <button class="manage-btn" id="manageBtn" onclick="toggleManage()">📋 MY BOOKINGS</button>
   </div>
 </header>
@@ -291,6 +292,7 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fb);font-si
     </div>
     <p style="font-size:12px;color:var(--stone);line-height:1.7" id="doneNote"></p>
     <button onclick="toggleManage()" class="btn-next" style="margin-top:20px;width:100%;letter-spacing:.05em" id="doneManageBtn"></button>
+    <a id="reviewLink" href="/review" style="display:block;width:100%;text-align:center;margin-top:10px;padding:14px;border:1px solid var(--green);color:var(--green);font-size:13px;font-weight:600;letter-spacing:.08em;text-decoration:none;text-transform:uppercase">⭐ Rəy bildir</a>
     <button onclick="goHome()" class="btn-back show" style="display:block;width:100%;text-align:center;margin-top:10px;padding:14px" id="doneHomeBtn"></button>
   </div>
 </div>
@@ -607,6 +609,8 @@ function applyTranslations() {
   if (noDateEl) noDateEl.textContent = tx.noDate;
   const manageBtnEl = document.getElementById('manageBtn');
   if (manageBtnEl) manageBtnEl.textContent = tx.myBookingsBtn;
+  const aboutEl = document.getElementById('aboutLink');
+  if (aboutEl) aboutEl.textContent = {az:'Haqqımızda', en:'About us', ru:'О нас'}[lang] || 'Haqqımızda';
   updateBottomBar();
 }
 
@@ -1311,6 +1315,13 @@ function renderDone(bookingId) {
   document.getElementById('doneId').textContent    = 'Booking ID: #' + bookingId;
   document.getElementById('doneManageBtn').textContent = t('doneManage');
   document.getElementById('doneHomeBtn').textContent   = t('doneHome');
+  // Set review link with booking_id and localized text
+  const rl = document.getElementById('reviewLink');
+  if (rl) {
+    rl.href = `/review?booking_id=${bookingId}`;
+    const revLabels = {az:'⭐ Rəy bildir', en:'⭐ Leave a review', ru:'⭐ Оставить отзыв'};
+    rl.textContent = revLabels[lang] || revLabels.az;
+  }
   const df = fmtDate(selectedDate);
   const displayMaster = resolvedMasterName || selectedMst.name;
   const labels = t('doneRowLabels');
