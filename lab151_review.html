@@ -155,6 +155,7 @@ const TX = {
     submitTxt:'Göndər', sending:'Göndərilir...',
     errNoRating:'Zəhmət olmasa qiymət seçin.',
     errAlready:'Bu rezervasiya üçün artıq rəy bildirilib.',
+    errTooEarly:'Rəy yalnız görüş günündən sonra bildirilə bilər.',
     errFail:'Xəta baş verdi. Yenidən cəhd edin.',
     doneTitle:'Təşəkkür edirik!', doneText:'Rəyiniz qeyd edildi. Sizinlə yenidən görüşməyə ürəkdən şadıq!',
     doneHome:'Ana səhifəyə qayıt →',
@@ -166,6 +167,7 @@ const TX = {
     submitTxt:'Submit', sending:'Sending...',
     errNoRating:'Please select a star rating.',
     errAlready:'A review has already been submitted for this booking.',
+    errTooEarly:'Reviews can only be submitted on or after your appointment date.',
     errFail:'Something went wrong. Please try again.',
     doneTitle:'Thank you!', doneText:'Your review has been recorded. We look forward to seeing you again!',
     doneHome:'Back to homepage →',
@@ -177,6 +179,7 @@ const TX = {
     submitTxt:'Отправить', sending:'Отправляем...',
     errNoRating:'Пожалуйста, выберите оценку.',
     errAlready:'Для этого бронирования отзыв уже оставлен.',
+    errTooEarly:'Отзыв можно оставить только в день визита или позже.',
     errFail:'Произошла ошибка. Попробуйте ещё раз.',
     doneTitle:'Спасибо!', doneText:'Ваш отзыв записан. Будем рады видеть вас снова!',
     doneHome:'На главную →',
@@ -240,6 +243,10 @@ async function submitReview() {
       document.getElementById('doneWrap').style.display = 'block';
     } else if (data.error === 'already_reviewed') {
       showErr(tx.errAlready);
+      btn.disabled = false;
+      document.getElementById('submitTxt').textContent = tx.submitTxt;
+    } else if (data.error === 'too_early') {
+      showErr(tx.errTooEarly);
       btn.disabled = false;
       document.getElementById('submitTxt').textContent = tx.submitTxt;
     } else {

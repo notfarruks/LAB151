@@ -430,13 +430,19 @@ async def send_email(to_email: str, subject: str, body_html: str) -> bool:
         log("error", "send_email failed", error=str(e))
         return False
 
-def booking_email_html(bid, name, svc_name, master_name, date_fmt, time, price, booking_url):
+def booking_email_html(bid, name, svc_name, master_name, date_fmt, time, price, booking_url, date_iso="", base_url=""):
+    base = base_url or booking_url.rsplit("/book", 1)[0] or booking_url
+    review_url = f"{base}/review?booking_id={bid}"
+    btn = ("background:#7DC242;color:#000;font-family:Arial,sans-serif;font-size:13px;"
+           "font-weight:700;letter-spacing:.06em;text-transform:uppercase;"
+           "text-decoration:none;padding:11px 22px;border-radius:4px;display:inline-block")
+    btn2 = btn.replace("#7DC242","#f0f0f0").replace("#000","#333")
     return f"""
 <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;color:#222">
   <h1 style="font-size:22px;margin-bottom:4px">LAB151</h1>
-  <p style="color:#888;margin-top:0">beauty chargers</p>
+  <p style="color:#888;margin-top:0;font-size:13px">beauty chargers</p>
   <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-  <h2 style="font-size:18px;color:#2a7a2a">✅ Booking Confirmed</h2>
+  <h2 style="font-size:18px;color:#5A9A2E">✅ Booking Confirmed</h2>
   <table style="width:100%;border-collapse:collapse;margin:16px 0">
     <tr><td style="padding:6px 0;color:#888;width:40%">Booking ID</td><td style="padding:6px 0"><b>#{bid}</b></td></tr>
     <tr><td style="padding:6px 0;color:#888">Name</td><td style="padding:6px 0">{name}</td></tr>
@@ -447,7 +453,20 @@ def booking_email_html(bid, name, svc_name, master_name, date_fmt, time, price, 
     <tr><td style="padding:6px 0;color:#888">Price</td><td style="padding:6px 0"><b>{int(price)} AZN</b></td></tr>
   </table>
   <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-  <p style="color:#888;font-size:13px">To manage your booking visit: <a href="{booking_url}">{booking_url}</a></p>
+  <table style="width:100%;border-collapse:collapse">
+    <tr>
+      <td style="padding:4px 8px 4px 0">
+        <a href="{booking_url}" style="{btn2}">📋 Manage booking</a>
+      </td>
+      <td style="padding:4px 0 4px 8px">
+        <a href="{review_url}" style="{btn}">⭐ Leave a review</a>
+      </td>
+    </tr>
+  </table>
+  <p style="color:#aaa;font-size:11px;margin-top:20px">
+    To cancel your appointment, click "Manage booking" and open the My Bookings section.<br>
+    The review link will be active from your appointment date onwards.
+  </p>
 </div>"""
 
 def booking_alert(bid, name, phone, mid, sid, date, time):
@@ -609,7 +628,7 @@ async def api_post_review(req: Request):
         if any(r["booking_id"] == booking_id for r in REVIEWS):
             return JSONResponse({"ok": False, "error": "already_reviewed"})
 
-        # Look up booking to get master info
+        # Look up booking to get master info and check appointment date
         master_id   = ""
         master_name = ""
         try:
@@ -619,6 +638,15 @@ async def api_post_review(req: Request):
             all_rows = sheet.get_all_records()
             for row in all_rows:
                 if str(row.get("booking_id","")).strip() == booking_id:
+                    # Date check: only allow review on or after appointment date
+                    appt_date_str = str(row.get("date","")).strip()
+                    if appt_date_str:
+                        try:
+                            appt_date = datetime.strptime(appt_date_str, "%Y-%m-%d").date()
+                            if datetime.now().date() < appt_date:
+                                return JSONResponse({"ok": False, "error": "too_early"})
+                        except ValueError:
+                            pass
                     master_id   = str(row.get("master_id","")).strip()
                     master_name = MASTERS.get(master_id, {}).get("name", "")
                     break
@@ -756,7 +784,8 @@ async def api_book(req: BookingRequest):
             req.email,
             f"LAB151 — Booking Confirmed #{bid}",
             booking_email_html(bid, name, svc.get('name',''), mn, df,
-                               req.time, svc.get('price',0), BOOKING_URL)
+                               req.time, svc.get('price',0), BOOKING_URL,
+                               date_iso=req.date, base_url=LANDING_URL)
         ))
 
     log("info", "Booking confirmed via web", id=bid, phone=wa_phone[-6:])
