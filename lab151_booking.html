@@ -1109,7 +1109,225 @@ async function initCalendar() {
 
 function shiftWeek(dir) { weekOffset += dir; renderWeek(); }
 
+
 function renderWeek() {
   const ws = new Date(weekStart);
   ws.setDate(ws.getDate() + weekOffset * 7);
-  const we = new Date(ws); we.setDate(we.getDate() 
+  const we = new Date(ws); we.setDate(we.getDate() + 6);
+  const mx = T[lang].months;
+  document.getElementById('wLabel').textContent =
+    `${mx[ws.getMonth()]} ${ws.getDate()} – ${mx[we.getMonth()]} ${we.getDate()}`;
+  document.getElementById('wPrev').disabled = weekOffset <= 0;
+  document.getElementById('wNext').disabled = weekOffset >= 3;
+
+  const avail = new Set(availDates);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dns   = T[lang].days;
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d   = new Date(ws); d.setDate(ws.getDate() + i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const past  = d < today;
+    const ok    = !past && avail.has(iso);
+    const isSel = selectedDate === iso;
+    let cls = 'day';
+    if (past)        cls += ' past';
+    else if (isSel)  cls += ' sel avail';
+    else if (ok)     cls += ' avail';
+    else             cls += ' unavail';
+    html += `<div class="${cls}" ${ok||isSel?`onclick="selectDate('${iso}')"`:''}">
+      <div class="day-name">${dns[i]}</div>
+      <div class="day-num">${d.getDate()}</div>
+    </div>`;
+  }
+  document.getElementById('daysStrip').innerHTML = html;
+}
+
+async function selectDate(iso) {
+  selectedDate = iso; selectedTime = null;
+  renderWeek();
+  document.getElementById('timeSection').innerHTML = `<div class="mini-spinner"></div>`;
+  try {
+    const r = await fetch(`/api/slots?master_id=${selectedMst.id}&service_id=${selectedSvc.id}&date=${iso}`);
+    const d = await r.json();
+    availSlots = d.slots || [];
+  } catch(e) { availSlots = []; }
+  renderSlots(); updateBottomBar();
+}
+
+function renderSlots() {
+  const morning   = availSlots.filter(s => parseInt(s) < 12);
+  const afternoon = availSlots.filter(s => parseInt(s) >= 12 && parseInt(s) < 17);
+  const evening   = availSlots.filter(s => parseInt(s) >= 17);
+  if (!availSlots.length) {
+    document.getElementById('timeSection').innerHTML =
+      `<p style="color:var(--stone);font-size:13px;font-style:italic">${t('noSlots')}</p>`;
+    return;
+  }
+  const groups = [
+    { label: t('morning'),   slots: morning   },
+    { label: t('afternoon'), slots: afternoon },
+    { label: t('evening'),   slots: evening   },
+  ].filter(g => g.slots.length);
+  document.getElementById('timeSection').innerHTML = groups.map(g => `
+    <div class="time-group">
+      <div class="tg-label">${g.label}</div>
+      <div class="time-grid">
+        ${g.slots.map(s => `<div class="slot ${selectedTime===s?'sel':''}" onclick="selectTime('${s}')">${s}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectTime(t_) { selectedTime = t_; renderSlots(); updateBottomBar(); }
+
+function fmtDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const mx = T[lang].months;
+  const dx = T[lang].days;
+  const dayIdx = (d.getDay() + 6) % 7;
+  return `${d.getDate()} ${mx[d.getMonth()]}, ${dx[dayIdx]}`;
+}
+
+// ── Slot hold timer ────────────────────────────────────────────────────────────────────────────────
+function startHoldTimer() {
+  clearHoldTimer();
+  holdExpiresAt = Date.now() + 10 * 60 * 1000;
+  tickHoldTimer();
+  holdTimerInterval = setInterval(tickHoldTimer, 1000);
+}
+
+function clearHoldTimer() {
+  if (holdTimerInterval) { clearInterval(holdTimerInterval); holdTimerInterval = null; }
+  holdExpiresAt = null;
+  const el = document.getElementById('holdTimer');
+  el.classList.remove('show','warn','expired');
+}
+
+function tickHoldTimer() {
+  const el = document.getElementById('holdTimer');
+  if (!holdExpiresAt) { el.classList.remove('show'); return; }
+  const rem = Math.max(0, Math.round((holdExpiresAt - Date.now()) / 1000));
+  if (rem === 0) {
+    clearInterval(holdTimerInterval); holdTimerInterval = null;
+    el.classList.add('show','expired'); el.classList.remove('warn');
+    el.textContent = t('holdExpired');
+    setTimeout(() => { clearHoldTimer(); showStep(2); showToast(t('holdExpired')); }, 2500);
+    return;
+  }
+  const mm = String(Math.floor(rem / 60)).padStart(2,'0');
+  const ss = String(rem % 60).padStart(2,'0');
+  el.classList.add('show'); el.classList.remove('expired');
+  el.classList.toggle('warn', rem <= 60);
+  el.textContent = t('holdMsg', `${mm}:${ss}`);
+}
+
+// ── STEP 3: Checkout ────────────────────────────────────────────────────────────────────────────────
+function renderCheckout() {
+  const df = fmtDate(selectedDate);
+  const labels = t('sumLabels');
+  document.getElementById('summary').innerHTML = [
+    [labels[0], selectedSvc.name],
+    [labels[1], selectedMst.name],
+    [labels[2], df],
+    [labels[3], selectedTime],
+  ].map(([l,v]) =>
+    `<div class="sum-row"><span class="sum-label">${l}</span><span class="sum-val">${v}</span></div>`
+  ).join('') +
+  `<div class="sum-row"><span class="sum-label">${labels[4]}</span><span class="sum-price">${selectedSvc.price} AZN</span></div>`;
+
+  document.getElementById('lName').textContent  = t('lName');
+  document.getElementById('lPhone').textContent = t('lPhone');
+  document.getElementById('lEmail').textContent = t('lEmail');
+  document.getElementById('lNote').textContent  = t('lNote');
+  document.getElementById('iName').placeholder  = t('phName');
+  document.getElementById('iPhone').placeholder = t('phPhone');
+  document.getElementById('iEmail').placeholder = 'example@email.com';
+  document.getElementById('iNote').placeholder  = t('phNote');
+  document.getElementById('hPhone').textContent = t('hPhone');
+  document.getElementById('eName').textContent  = t('eName');
+  document.getElementById('ePhone').textContent = t('ePhone');
+  document.getElementById('eEmail').textContent = t('eEmail');
+  if (prefilledPhone) document.getElementById('iPhone').value = prefilledPhone;
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────────────────────────────────────────
+async function submitBooking() {
+  const name  = document.getElementById('iName').value.trim();
+  const phone = document.getElementById('iPhone').value.trim();
+  const email = document.getElementById('iEmail').value.trim();
+  let ok = true;
+  document.getElementById('iName').classList.toggle('err', !name);
+  document.getElementById('eName').classList.toggle('show', !name);
+  if (!name) ok = false;
+  const phoneOk = phone.replace(/\D/g,'').length >= 7;
+  document.getElementById('iPhone').classList.toggle('err', !phoneOk);
+  document.getElementById('ePhone').classList.toggle('show', !phoneOk);
+  if (!phoneOk) ok = false;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById('iEmail').classList.toggle('err', !emailOk);
+  document.getElementById('eEmail').classList.toggle('show', !emailOk);
+  if (!emailOk) ok = false;
+  if (!ok) return;
+  showLoading(true);
+  try {
+    const resp = await fetch('/api/book', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name, phone, email,
+        note:       document.getElementById('iNote').value.trim(),
+        service_id: selectedSvc.id,
+        master_id:  selectedMst.id,
+        date:       selectedDate,
+        time:       selectedTime,
+      })
+    });
+    showLoading(false);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.master_name) resolvedMasterName = data.master_name;
+      showDone(data.booking_id);
+    } else if (resp.status === 409) {
+      showToast(t('errSlot')); showStep(2);
+    } else {
+      showToast(t('errGeneric'));
+    }
+  } catch(e) { showLoading(false); showToast(t('errGeneric')); }
+}
+
+// ── Confirmation ──────────────────────────────────────────────────────────────────────────────────────────────────
+function renderDone(bookingId) {
+  document.getElementById('doneTitle').textContent = t('doneTitle');
+  document.getElementById('doneSub').textContent   = t('doneSub');
+  document.getElementById('doneNote').textContent  = t('doneNote');
+  document.getElementById('doneId').textContent    = 'Booking ID: #' + bookingId;
+  document.getElementById('doneManageBtn').textContent = t('doneManage');
+  document.getElementById('doneHomeBtn').textContent   = t('doneHome');
+  const df = fmtDate(selectedDate);
+  const displayMaster = resolvedMasterName || selectedMst.name;
+  const labels = t('doneRowLabels');
+  document.getElementById('doneDetails').innerHTML = [
+    [labels[0], selectedSvc.name],
+    [labels[1], displayMaster],
+    [labels[2], df],
+    [labels[3], selectedTime],
+    [labels[4], selectedSvc.price + ' AZN'],
+  ].map(([l,v]) =>
+    `<div class="done-row"><span class="done-rl">${l}</span><span class="done-rv">${v}</span></div>`
+  ).join('');
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────────────────────────────────────────
+function showLoading(v) { document.getElementById('loading').classList.toggle('show', v); }
+function showToast(msg) {
+  const t_ = document.getElementById('toast');
+  t_.textContent = msg; t_.classList.add('show');
+  setTimeout(() => t_.classList.remove('show'), 3500);
+}
+
+// ── Init ────────────────────────────────────────────────────────────────────────────────────────────────────────
+applyTranslations();
+loadAppData();
+</script>
+</body>
+</html>
