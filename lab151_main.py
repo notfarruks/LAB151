@@ -1040,4 +1040,123 @@ async def whatsapp_webhook(request: Request):
                 pick_time = {"en":f"Available times for {df}:","ru":f"Свободное время {df}:","az":f"{df} tarixi üçün boş saatlar:"}
                 return reply_wa(pick_time[lang]+"\n\n"+fmt_slots(slots))
         except ValueError:
-           
+            pass
+        save_wa_session(From, session)
+        err = {"en":"Please enter a number from the list.","ru":"Введите номер из списка.","az":"Siyahıdan nömrə yazın."}
+        return reply_wa(err[lang]+"\n\n"+fmt_dates(dates))
+
+    # ── RESCHEDULE: PICK TIME ─────────────────────────────────────────────────
+    if session["state"] == "RESCHEDULE_TIME":
+        slots = session.get("available_slots",[])
+        try:
+            idx = int(user)
+            if 1 <= idx <= len(slots):
+                new_time = slots[idx-1]
+                new_date = session["date"]
+                rb       = session["reschedule_booking"]
+                ok       = await asyncio.get_event_loop().run_in_executor(
+                    executor, reschedule_booking, rb["row"], new_date, new_time)
+                if ok:
+                    asyncio.create_task(telegram(reschedule_alert(
+                        rb["booking_id"], rb["customer_name"], From,
+                        rb["master_id"], rb["service_id"],
+                        rb["date"], rb["time"], new_date, new_time
+                    )))
+                    mn = MASTERS.get(rb["master_id"],{}).get("name","")
+                    df = datetime.strptime(new_date,"%Y-%m-%d").strftime("%d %b %Y")
+                    session.update({"state":"IDLE","reschedule_booking":None,
+                                    "available_dates":[],"available_slots":[]})
+                    save_wa_session(From, session)
+                    msgs = {
+                        "en": f"\u2705 Rescheduled!\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {new_time}",
+                        "ru": f"\u2705 \u041f\u0435\u0440\u0435\u043d\u0435\u0441\u0435\u043d\u043e!\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {new_time}",
+                        "az": f"\u2705 D\u0259yi\u015fdirildi!\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {new_time}",
+                    }
+                    return reply_wa(msgs[lang])
+                else:
+                    session["state"] = "IDLE"
+                    save_wa_session(From, session)
+                    err = {"en":"\u26a0\ufe0f Error. Please try again.","ru":"\u26a0\ufe0f \u041e\u0448\u0438\u0431\u043a\u0430.","az":"\u26a0\ufe0f X\u0259ta ba\u015f verdi."}
+                    return reply_wa(err[lang])
+        except ValueError:
+            pass
+        save_wa_session(From, session)
+        err = {"en":"Please enter a number from the list.","ru":"\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043d\u043e\u043c\u0435\u0440 \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430.","az":"Siyah\u0131dan n\u00f6mr\u0259 yaz\u0131n."}
+        return reply_wa(err[lang]+"\n\n"+fmt_slots(slots))
+
+    # ── GLOBAL KEYWORDS ───────────────────────────────────────────────────────
+
+    # HELP
+    if ulower == kw["help"]:
+        msgs = {
+            "en": f"\U0001f91d Contact us directly:\n\U0001f4de {SALON_PHONE}\n\nOr book online:\n{BOOKING_URL}",
+            "ru": f"\U0001f91d \u0421\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043d\u0430\u043c\u0438:\n\U0001f4de {SALON_PHONE}\n\n\u0417\u0430\u043f\u0438\u0441\u044c \u043e\u043d\u043b\u0430\u0439\u043d:\n{BOOKING_URL}",
+            "az": f"\U0001f91d Bizimls \u0259laq\u0259:\n\U0001f4de {SALON_PHONE}\n\nOnline rezervasiya:\n{BOOKING_URL}",
+        }
+        save_wa_session(From, session)
+        return reply_wa(msgs[lang])
+
+    # MY BOOKINGS
+    if ulower == kw["my"]:
+        bookings = await asyncio.get_event_loop().run_in_executor(executor, fetch_all_bookings, From)
+        save_wa_session(From, session)
+        if not bookings:
+            nb = {"en":"\U0001f4cb No active bookings.","ru":"\U0001f4cb \u041d\u0435\u0442 \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0445 \u0437\u0430\u043f\u0438\u0441\u0435\u0439.","az":"\U0001f4cb Aktiv rezervasiyan\u0131z yoxdur."}
+            return reply_wa(nb[lang])
+        header = {"en":"\U0001f4cb *Your bookings:*","ru":"\U0001f4cb *\u0412\u0430\u0448\u0438 \u0437\u0430\u043f\u0438\u0441\u0438:*","az":"\U0001f4cb *Rezervasiyalar\u0131n\u0131z:*"}
+        footer = {"en":f"To cancel or reschedule, visit:\n{BOOKING_URL}",
+                  "ru":f"\u0414\u043b\u044f \u043e\u0442\u043c\u0435\u043d\u044b \u0438\u043b\u0438 \u043f\u0435\u0440\u0435\u043d\u043e\u0441\u0430:\n{BOOKING_URL}",
+                  "az":f"L\u0259\u011fv v\u0259 ya d\u0259yi\u015fiklik \u00fc\u00e7\u00fcn:\n{BOOKING_URL}"}
+        return reply_wa(header[lang]+"\n\n"+fmt_bookings(bookings,lang)+"\n\n"+footer[lang])
+
+    # CANCEL
+    if ulower == kw["cancel"]:
+        b = await asyncio.get_event_loop().run_in_executor(executor, fetch_active_booking, From)
+        if not b["found"]:
+            nb = {"en":"\U0001f4cb No active bookings.","ru":"\U0001f4cb \u041d\u0435\u0442 \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0445 \u0437\u0430\u043f\u0438\u0441\u0435\u0439.","az":"\U0001f4cb Aktiv rezervasiyan\u0131z yoxdur."}
+            save_wa_session(From, session)
+            return reply_wa(nb[lang])
+        session["cancel_booking"] = b
+        session["state"] = "CONFIRM_CANCEL"
+        sn = SERVICES.get(b["service_id"],{}).get("name","")
+        mn = MASTERS.get(b["master_id"],{}).get("name","")
+        df = datetime.strptime(b["date"],"%Y-%m-%d").strftime("%d %b %Y")
+        yes_kw = KEYWORDS["yes"][lang]
+        no_kw  = KEYWORDS["no"][lang]
+        msgs = {
+            "en": f"\U0001f4cb *Your booking:*\n\U0001f194 #{b['booking_id']}\n\U0001f485 {sn}\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {b['time']}\n\nCancel this?\n*{yes_kw}* — yes\n*{no_kw}* — no",
+            "ru": f"\U0001f4cb *\u0412\u0430\u0448\u0430 \u0437\u0430\u043f\u0438\u0441\u044c:*\n\U0001f194 #{b['booking_id']}\n\U0001f485 {sn}\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {b['time']}\n\n\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c?\n*{yes_kw}* — \u0434\u0430\n*{no_kw}* — \u043d\u0435\u0442",
+            "az": f"\U0001f4cb *Rezervasiyan\u0131z:*\n\U0001f194 #{b['booking_id']}\n\U0001f485 {sn}\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {b['time']}\n\nL\u0259\u011fv etm\u0259k?\n*{yes_kw}* — b\u0259li\n*{no_kw}* — xeyr",
+        }
+        save_wa_session(From, session)
+        return reply_wa(msgs[lang])
+
+    # RESCHEDULE
+    if ulower == kw["reschedule"]:
+        b = await asyncio.get_event_loop().run_in_executor(executor, fetch_active_booking, From)
+        if not b["found"]:
+            nb = {"en":"\U0001f4cb No active bookings to reschedule.",
+                  "ru":"\U0001f4cb \u041d\u0435\u0442 \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0445 \u0437\u0430\u043f\u0438\u0441\u0435\u0439 \u0434\u043b\u044f \u043f\u0435\u0440\u0435\u043d\u043e\u0441\u0430.",
+                  "az":"\U0001f4cb D\u0259yi\u015fdiril\u0259c\u0259k aktiv rezervasiya yoxdur."}
+            save_wa_session(From, session)
+            return reply_wa(nb[lang])
+        session["reschedule_booking"] = b
+        dates = await asyncio.get_event_loop().run_in_executor(
+            executor, get_available_dates, b["master_id"])
+        session["available_dates"] = dates
+        session["state"] = "RESCHEDULE_DATE"
+        sn = SERVICES.get(b["service_id"],{}).get("name","")
+        mn = MASTERS.get(b["master_id"],{}).get("name","")
+        df = datetime.strptime(b["date"],"%Y-%m-%d").strftime("%d %b %Y")
+        save_wa_session(From, session)
+        hdr = {
+            "en": f"\U0001f4cb *Current booking:*\n\U0001f194 #{b['booking_id']}\n\U0001f485 {sn}\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {b['time']}\n\nPick a new date:",
+            "ru": f"\U0001f4cb *\u0422\u0435\u043a\u0443\u0449\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c:*\n\U0001f194 #{b['booking_id']}\n\U0001f485 {sn}\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {b['time']}\n\n\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043d\u043e\u0432\u0443\u044e \u0434\u0430\u0442\u0443:",
+            "az": f"\U0001f4cb *M\u00f6vcud rezervasiya:*\n\U0001f194 #{b['booking_id']}\n\U0001f485 {sn}\n\U0001f469 {mn}\n\U0001f4c5 {df} \u2022 \U0001f550 {b['time']}\n\nYeni tarix se\u00e7in:",
+        }
+        return reply_wa(hdr[lang]+"\n\n"+fmt_dates(dates))
+
+    # ── FALLBACK ──────────────────────────────────────────────────────────────
+    save_wa_session(From, session)
+    greeting = GREETER.get(lang, GREETER["az"])
+    return reply_wa(greeting.format(url=LANDING_URL, phone=SALON_PHONE))
