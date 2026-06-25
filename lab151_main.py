@@ -553,15 +553,18 @@ async def api_data():
 
     # Default durations per service (use first master's duration as representative)
     durations_out = {}
+    master_services_out = {}  # {master_id: [service_id, ...]}
     for (mid, sid), dur in DURATIONS.items():
         if sid not in durations_out:
             durations_out[sid] = dur
+        master_services_out.setdefault(mid, []).append(sid)
 
     return JSONResponse({
-        "categories": CATEGORIES,
-        "services":   services_out,
-        "masters":    masters_out,
-        "durations":  durations_out,
+        "categories":      CATEGORIES,
+        "services":        services_out,
+        "masters":         masters_out,
+        "durations":       durations_out,
+        "master_services": master_services_out,
     })
 
 # ── GET /api/slots ─────────────────────────────────────────────────────────────

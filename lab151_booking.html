@@ -1062,7 +1062,15 @@ function renderMasters() {
       <div class="radio" style="margin:6px 0 0 auto"><div class="radio-inner"></div></div>
     </div>
   </div>`;
-  const masterCards = appData.masters.map(m => {
+  // Filter to masters who can perform the selected service
+  let eligibleMasters = appData.masters;
+  if (selectedSvc && appData.master_services) {
+    eligibleMasters = appData.masters.filter(m => {
+      const svcList = appData.master_services[m.id] || [];
+      return svcList.includes(String(selectedSvc.id));
+    });
+  }
+  const masterCards = eligibleMasters.map(m => {
     const meta = t('masterMeta', m.specialty, m.experience);
     return `<div class="master-card ${selectedMst&&selectedMst.id===m.id?'sel':''}" onclick="selectMst('${m.id}')">
       <div class="avatar">${m.initials}</div>
