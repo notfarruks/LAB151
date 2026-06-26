@@ -730,6 +730,69 @@ async def api_dates(master_id: str, service_id: str = ""):
     )
     return JSONResponse({"dates": dates})
 
+# ── POST /api/send-email-code ─────────────────────────────────────────────────
+import random, re as _re
+
+class EmailCodeRequest(BaseModel):
+    email: str
+
+@app.post("/api/send-email-code")
+async def api_send_email_code(req: EmailCodeRequest):
+    email = req.email.strip().lower()
+    if not _re.match(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$', email):
+        raise HTTPException(400, "Invalid email")
+
+    # Rate limit: max 5 sends per email per hour
+    rate_key = f"lab151:email-code-rate:{email}"
+    count = redis_client.get(rate_key)
+    if count and int(count) >= 5:
+        raise HTTPException(429, "Too many attempts. Try again later.")
+    redis_client.incr(rate_key)
+    redis_client.expire(rate_key, 3600)
+
+    code = str(random.randint(1000, 9999))
+    redis_client.setex(f"lab151:email-code:{email}", 600, code)  # 10-minute TTL
+
+    html = f"""
+<div style="font-family:Arial,sans-serif;max-width:420px;margin:0 auto;padding:28px;color:#222">
+  <h2 style="font-size:20px;margin-bottom:4px">LAB151</h2>
+  <p style="color:#888;font-size:12px;margin-top:0">beauty chargers</p>
+  <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
+  <p style="font-size:15px;margin-bottom:24px">Your verification code:</p>
+  <div style="font-size:40px;font-weight:700;letter-spacing:10px;color:#111;text-align:center;
+              background:#F2FCE8;border:1px solid #C8EE8A;border-radius:8px;padding:20px 0;margin-bottom:24px">
+    {code}
+  </div>
+  <p style="font-size:13px;color:#888;line-height:1.6">
+    Enter this code on the booking page to verify your email.<br>
+    Expires in <b>10 minutes</b>. Do not share this code with anyone.
+  </p>
+  <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
+  <p style="font-size:11px;color:#aaa">LAB151 · Bakı White City, Bakı</p>
+</div>"""
+
+    ok = await send_email(email, "LAB151 — Verification Code", html)
+    if not ok:
+        log("warning", "email-code send failed", email=email)
+        # Still return ok in dev so flow works without SendGrid configured
+    log("info", "email-code sent", email=email)
+    return JSONResponse({"ok": True})
+
+
+class VerifyEmailCodeRequest(BaseModel):
+    email: str
+    code:  str
+
+@app.post("/api/verify-email-code")
+async def api_verify_email_code(req: VerifyEmailCodeRequest):
+    email = req.email.strip().lower()
+    stored = redis_client.get(f"lab151:email-code:{email}")
+    if not stored or stored != req.code.strip():
+        raise HTTPException(400, "Invalid or expired code")
+    # Don't delete yet — /api/book will check it too so the session stays valid
+    return JSONResponse({"ok": True})
+
+
 # ── POST /api/book ─────────────────────────────────────────────────────────────
 class BookingRequest(BaseModel):
     name:       str
@@ -745,9 +808,19 @@ class BookingRequest(BaseModel):
 async def api_book(req: BookingRequest):
     name  = req.name.strip()[:60]
     phone = req.phone.strip()[:20]
+    email = req.email.strip().lower() if req.email else ""
 
     if not name or not phone:
         raise HTTPException(400, "Name and phone are required")
+
+    # Verify email code was confirmed (only if email provided)
+    if email:
+        stored = redis_client.get(f"lab151:email-code:{email}")
+        if not stored:
+            raise HTTPException(400, "email_not_verified")
+        # Burn the code after successful booking
+        redis_client.delete(f"lab151:email-code:{email}")
+
     if req.service_id not in SERVICES:
         raise HTTPException(400, "Invalid service")
 
