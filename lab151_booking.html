@@ -285,9 +285,14 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fg);font-si
     </div>
     <div class="form-field">
       <label class="form-label" id="lEmail"></label>
-      <input class="form-input" id="iEmail" type="email" maxlength="100">
+      <input class="form-input" id="iEmail" type="email" maxlength="100" oninput="clearEmailMatch()">
       <div class="form-hint" id="hEmail"></div>
       <div class="err-msg" id="eEmail"></div>
+    </div>
+    <div class="form-field">
+      <label class="form-label" id="lEmailConfirm"></label>
+      <input class="form-input" id="iEmailConfirm" type="email" maxlength="100" oninput="clearEmailMatch()" onpaste="return false">
+      <div class="err-msg" id="eEmailConfirm"></div>
     </div>
     <div class="err-msg" id="eContact"></div>
     <div class="form-field">
@@ -391,12 +396,13 @@ const T = {
     morning: 'Səhər', afternoon: 'Gündüz', evening: 'Axşam',
     noSlots: 'Bu tarixdə boş yer yoxdur.',
     sumLabels: ['Xidmət','Usta','Tarix','Vaxt','Cəmi'],
-    lName: 'Adınız', lPhone: 'Telefon nömrəsi', lEmail: 'E-poçt', lNote: 'Qeyd (istəyə bağlı)',
+    lName: 'Adınız', lPhone: 'Telefon nömrəsi', lEmail: 'E-poçt', lEmailConfirm: 'E-poçtu təsdiqləyin', lNote: 'Qeyd (istəyə bağlı)',
     phName: 'Ad və soyad', phPhone: '+994 XX XXX XX XX',
     phNote: 'Allergiya, istəklər…',
     hPhone: 'SMS təsdiq mesajı göndəriləcək',
     hEmail: 'Təsdiq e-poçtu bu ünvana göndəriləcək',
     eName: 'Adınızı daxil edin', ePhone: 'Düzgün telefon nömrəsi daxil edin', eEmail: 'Düzgün e-poçt daxil edin',
+    eEmailConfirm: 'E-poçt ünvanları uyğun gəlmir',
     eContact: '',
     back: 'Geri', next: 'Davam et', book: 'Rezervasiya et',
     doneTitle: 'Rezervasiya təsdiqləndi!', doneSub: 'E-poçtunuza təsdiq mesajı göndərildi.',
@@ -451,12 +457,13 @@ const T = {
     morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening',
     noSlots: 'No available slots for this date.',
     sumLabels: ['Service','Master','Date','Time','Total'],
-    lName: 'Your name', lPhone: 'Phone number', lEmail: 'Email', lNote: 'Note (optional)',
+    lName: 'Your name', lPhone: 'Phone number', lEmail: 'Email', lEmailConfirm: 'Confirm email', lNote: 'Note (optional)',
     phName: 'First and last name', phPhone: '+994 XX XXX XX XX',
     phNote: 'Allergies, preferences…',
     hPhone: "You'll receive an SMS confirmation",
     hEmail: 'Confirmation email will be sent here',
     eName: 'Please enter your name', ePhone: 'Please enter a valid phone number', eEmail: 'Please enter a valid email',
+    eEmailConfirm: 'Email addresses do not match',
     eContact: '',
     back: 'Back', next: 'Continue', book: 'Book Appointment',
     doneTitle: "You're booked!", doneSub: 'A confirmation email has been sent.',
@@ -511,12 +518,12 @@ const T = {
     morning: 'Утро', afternoon: 'День', evening: 'Вечер',
     noSlots: 'На эту дату нет свободных записей.',
     sumLabels: ['Услуга','Мастер','Дата','Время','Итого'],
-    lName: 'Ваше имя', lPhone: 'Номер телефона', lEmail: 'Эл. почта', lNote: 'Примечание (необязательно)',
+    lName: 'Ваше имя', lPhone: 'Номер телефона', lEmail: 'Эл. почта', lEmailConfirm: 'Подтвердите эл. почту', lNote: 'Примечание (необязательно)',
     phName: 'Имя и фамилия', phPhone: '+994 XX XXX XX XX',
     phNote: 'Аллергии, пожелания…',
     hPhone: 'Подтверждение придёт по SMS',
     hEmail: 'Подтверждение придёт на эту почту',
-    eName: 'Введите ваше имя', ePhone: 'Введите корректный номер', eEmail: 'Введите корректный email',
+    eName: 'Введите ваше имя', ePhone: 'Введите корректный номер', eEmail: 'Введите корректный email', eEmailConfirm: 'Адреса эл. почты не совпадают',
     eContact: '',
     back: 'Назад', next: 'Продолжить', book: 'Записаться',
     doneTitle: 'Запись подтверждена!', doneSub: 'Подтверждение отправлено на вашу почту.',
@@ -1322,20 +1329,23 @@ function renderCheckout() {
   ).join('') +
   `<div class="sum-row"><span class="sum-label">${labels[4]}</span><span class="sum-price">${selectedSvc.price} AZN</span></div>`;
 
-  document.getElementById('lName').textContent  = t('lName');
-  document.getElementById('lPhone').textContent = t('lPhone');
-  document.getElementById('lEmail').textContent = t('lEmail');
-  document.getElementById('lNote').textContent  = t('lNote');
-  document.getElementById('iName').placeholder  = t('phName');
-  document.getElementById('iPhone').placeholder = t('phPhone');
-  document.getElementById('iEmail').placeholder = 'example@email.com';
-  document.getElementById('iNote').placeholder  = t('phNote');
-  document.getElementById('hPhone').textContent = t('hPhone');
-  document.getElementById('hEmail').textContent = t('hEmail');
-  document.getElementById('eName').textContent  = t('eName');
-  document.getElementById('ePhone').textContent = t('ePhone');
-  document.getElementById('eContact').textContent = t('eContact');
-  document.getElementById('eEmail').textContent = t('eEmail');
+  document.getElementById('lName').textContent         = t('lName');
+  document.getElementById('lPhone').textContent        = t('lPhone');
+  document.getElementById('lEmail').textContent        = t('lEmail');
+  document.getElementById('lEmailConfirm').textContent = t('lEmailConfirm');
+  document.getElementById('lNote').textContent         = t('lNote');
+  document.getElementById('iName').placeholder         = t('phName');
+  document.getElementById('iPhone').placeholder        = t('phPhone');
+  document.getElementById('iEmail').placeholder        = 'example@email.com';
+  document.getElementById('iEmailConfirm').placeholder = 'example@email.com';
+  document.getElementById('iNote').placeholder         = t('phNote');
+  document.getElementById('hPhone').textContent        = t('hPhone');
+  document.getElementById('hEmail').textContent        = t('hEmail');
+  document.getElementById('eName').textContent         = t('eName');
+  document.getElementById('ePhone').textContent        = t('ePhone');
+  document.getElementById('eContact').textContent      = t('eContact');
+  document.getElementById('eEmail').textContent        = t('eEmail');
+  document.getElementById('eEmailConfirm').textContent = t('eEmailConfirm');
   if (prefilledPhone) document.getElementById('iPhone').value = prefilledPhone;
 }
 
@@ -1369,6 +1379,11 @@ function formatAzPhone(raw) {
   return out;
 }
 
+function clearEmailMatch() {
+  document.getElementById('iEmailConfirm').classList.remove('err');
+  document.getElementById('eEmailConfirm').classList.remove('show');
+}
+
 let _phoneDel = false;
 function onPhoneKey(e)  { _phoneDel = e.key === 'Backspace' || e.key === 'Delete'; }
 function onPhoneInput(el) {
@@ -1397,6 +1412,11 @@ async function submitBooking() {
   document.getElementById('iEmail').classList.toggle('err', !emailOk);
   document.getElementById('eEmail').classList.toggle('show', !emailOk);
   if (!emailOk) ok = false;
+  const emailConfirm = document.getElementById('iEmailConfirm').value.trim();
+  const emailMatchOk = emailOk && emailConfirm === email;
+  document.getElementById('iEmailConfirm').classList.toggle('err', !emailMatchOk);
+  document.getElementById('eEmailConfirm').classList.toggle('show', !emailMatchOk);
+  if (!emailMatchOk) ok = false;
   if (!ok) return;
   showLoading(true);
   try {
