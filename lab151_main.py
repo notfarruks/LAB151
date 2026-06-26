@@ -654,27 +654,31 @@ async def api_post_review(req: Request):
         rating        = int(body.get("rating", 0))
         comment       = str(body.get("comment","")).strip()[:500]
         reviewer_name = str(body.get("reviewer_name","")).strip()[:80]
+        # master_id/name can be passed directly (open review with no booking_id)
+        req_master_id   = str(body.get("master_id","")).strip()
+        req_master_name = str(body.get("master_name","")).strip()[:100]
 
-        if not booking_id or rating < 1 or rating > 5:
-            raise HTTPException(400, "booking_id and rating (1-5) required")
+        if rating < 1 or rating > 5:
+            raise HTTPException(400, "rating (1-5) required")
 
-        # Prevent duplicate reviews for the same booking
-        if any(r["booking_id"] == booking_id for r in REVIEWS):
+        # Prevent duplicate reviews for the same booking (only when booking_id given)
+        if booking_id and any(r["booking_id"] == booking_id for r in REVIEWS):
             return JSONResponse({"ok": False, "error": "already_reviewed"})
 
-        # Look up booking to get master info and check appointment date
-        master_id   = ""
-        master_name = ""
+        master_id   = req_master_id
+        master_name = req_master_name or MASTERS.get(master_id, {}).get("name", "")
         try:
             client = get_sheets()
             db     = client.open("LAB151_DB")
-            sheet  = db.worksheet("Bookings")
-            all_rows = sheet.get_all_records()
-            for row in all_rows:
-                if str(row.get("id", row.get("booking_id",""))).strip() == booking_id:
-                    master_id   = str(row.get("master_id","")).strip()
-                    master_name = MASTERS.get(master_id, {}).get("name", "")
-                    break
+            # If booking_id given, look it up to get master info
+            if booking_id:
+                sheet    = db.worksheet("Bookings")
+                all_rows = sheet.get_all_records()
+                for row in all_rows:
+                    if str(row.get("id", row.get("booking_id",""))).strip() == booking_id:
+                        master_id   = str(row.get("master_id","")).strip()
+                        master_name = MASTERS.get(master_id, {}).get("name", "")
+                        break
             review_row = [
                 booking_id, master_id, master_name, rating,
                 comment, reviewer_name,
