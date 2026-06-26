@@ -492,10 +492,91 @@ footer {
 }
 .footer-copy { font-size: 11px; color: #555; }
 
-@media (max-width: 600px) {
-  .hero h1 { font-size: 38px; }
-  .hero-stats { gap: 28px; }
-  .services-grid { grid-template-columns: 1fr 1fr; }
+@media (max-width: 640px) {
+  /* Prevent horizontal bleed */
+  body { overflow-x: hidden; }
+  .hero::before { width: 280px; height: 280px; }
+  .hero::after  { display: none; }
+
+  /* Header */
+  header { padding: 0 16px; height: 56px; gap: 6px; }
+  .logo { font-size: 15px; }
+  .logo span { display: none; }
+  .lang-btn { padding: 4px 7px; font-size: 10px; }
+  .btn-book { padding: 8px 14px; font-size: 11px; letter-spacing: 0.07em; }
+
+  /* Hero */
+  .hero { min-height: auto; padding: 36px 16px 44px; }
+  .hero-tag { margin-bottom: 18px; }
+  .hero h1 { font-size: 38px; margin-bottom: 20px; }
+  .hero p { font-size: 14px; margin-bottom: 28px; }
+  .hero-stats { margin-top: 36px; gap: 20px; }
+  .hero-stat-num { font-size: 26px; }
+
+  /* Sections */
+  section { padding: 48px 16px; }
+  .section-title { font-size: 24px; margin-bottom: 28px; }
+
+  /* Billboard */
+  .billboard { height: 360px; border-radius: 12px; }
+  .bb-content { padding: 0 20px 32px; }
+  .bb-name { font-size: 28px; }
+  .bb-dots { bottom: 14px; right: 18px; }
+  .bb-arr { width: 38px; height: 38px; font-size: 18px; }
+
+  /* How it works */
+  .steps-grid { gap: 28px; }
+  .step-num { font-size: 34px; margin-bottom: -4px; }
+  .step-icon { font-size: 22px; margin-bottom: 10px; }
+
+  /* Team → horizontal scroll */
+  .team-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .team-grid::-webkit-scrollbar { display: none; }
+  .master-card {
+    flex: 0 0 148px;
+    min-width: 148px;
+    padding: 18px 14px 16px;
+  }
+  .master-avatar { width: 52px; height: 52px; font-size: 14px; margin-bottom: 12px; }
+  .master-name { font-size: 13px; }
+  .master-specialty { font-size: 11px; }
+
+  /* Reviews → horizontal scroll */
+  .reviews-section { padding: 48px 16px; }
+  .reviews-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .reviews-grid::-webkit-scrollbar { display: none; }
+  .review-card { flex: 0 0 260px; min-width: 260px; padding: 18px; }
+  .review-comment { font-size: 13px; }
+
+  /* Reviews header row */
+  .reviews-section > div:first-child { margin-bottom: 20px !important; flex-direction: column; align-items: flex-start !important; }
+
+  /* Contact */
+  .contact-grid { gap: 28px; }
+  .phone-link { font-size: 15px; }
+
+  /* Footer */
+  footer { padding: 24px 16px; }
 }
 </style>
 </head>
