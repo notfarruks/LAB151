@@ -346,18 +346,21 @@ def fetch_active_booking(phone: str) -> dict:
         log("error", "fetch_active_booking failed", error=str(e))
         return {"found": False}
 
-def fetch_all_bookings(phone: str) -> list:
+def fetch_all_bookings(phone: str = "", email: str = "") -> list:
     try:
         db    = get_sheets().open("LAB151_DB")
         rows  = db.worksheet("Bookings").get_all_records()
-        # Show bookings from last 30 days onwards
         cutoff = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
         out   = []
+        norm_phone = phone.replace("whatsapp:","").strip() if phone else ""
+        norm_email = email.strip().lower() if email else ""
         for i, b in enumerate(rows, 2):
-            cp = str(b.get("phone","")).replace("whatsapp:","").strip()
-            up = phone.replace("whatsapp:","").strip()
+            cp     = str(b.get("phone","")).replace("whatsapp:","").strip()
+            ce     = str(b.get("email","")).strip().lower()
             status = str(b.get("status",""))
-            if (cp == up and
+            phone_match = norm_phone and cp == norm_phone
+            email_match = norm_email and ce == norm_email
+            if ((phone_match or email_match) and
                 status in ("Confirmed", "Cancelled") and
                 str(b.get("date","")) >= cutoff):
                 out.append({"row": i,
@@ -726,7 +729,7 @@ async def api_dates(master_id: str, service_id: str = ""):
 # ── POST /api/book ─────────────────────────────────────────────────────────────
 class BookingRequest(BaseModel):
     name:       str
-    phone:      str = ""
+    phone:      str
     email:      str = ""
     service_id: str
     master_id:  str
@@ -738,10 +741,9 @@ class BookingRequest(BaseModel):
 async def api_book(req: BookingRequest):
     name  = req.name.strip()[:60]
     phone = req.phone.strip()[:20]
-    email = req.email.strip()[:100]
 
-    if not name or (not phone and not email):
-        raise HTTPException(400, "Name and at least phone or email are required")
+    if not name or not phone:
+        raise HTTPException(400, "Name and phone are required")
     if req.service_id not in SERVICES:
         raise HTTPException(400, "Invalid service")
 
@@ -816,12 +818,14 @@ async def api_book(req: BookingRequest):
 
 # ── GET /api/my-bookings ───────────────────────────────────────────────────────
 @app.get("/api/my-bookings")
-async def api_my_bookings(phone: str):
-    clean = phone.strip().replace(" ", "").replace("-", "")
-    if not clean.startswith("+"): clean = "+" + clean
-    wa_phone = "whatsapp:" + clean
+async def api_my_bookings(phone: str = "", email: str = ""):
+    wa_phone = ""
+    if phone:
+        clean = phone.strip().replace(" ", "").replace("-", "")
+        if not clean.startswith("+"): clean = "+" + clean
+        wa_phone = "whatsapp:" + clean
     bookings = await asyncio.get_event_loop().run_in_executor(
-        executor, fetch_all_bookings, wa_phone)
+        executor, fetch_all_bookings, wa_phone, email)
     result = []
     for b in bookings:
         result.append({**b,
