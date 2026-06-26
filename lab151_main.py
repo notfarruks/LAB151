@@ -170,6 +170,37 @@ def load_data():
         CATEGORIES, BLOCKED_DATES    = new_cats, new_blocked
         REVIEWS                      = new_reviews
         log("info", "Data loaded", masters=len(MASTERS), services=len(SERVICES))
+
+        # Auto-repair: backfill missing master_id in Reviews using Bookings sheet
+        try:
+            reviews_ws  = db.worksheet("Reviews")
+            rev_records = reviews_ws.get_all_records()
+            bookings_ws = db.worksheet("Bookings")
+            book_records = bookings_ws.get_all_records()
+            book_map = {
+                str(b.get("id", b.get("booking_id",""))).strip(): b
+                for b in book_records
+            }
+            for i, rev in enumerate(rev_records, start=2):  # row 1 is header
+                if not str(rev.get("master_id","")).strip():
+                    bid = str(rev.get("booking_id","")).strip()
+                    booking = book_map.get(bid)
+                    if booking:
+                        mid = str(booking.get("master_id","")).strip()
+                        mn  = new_masters.get(mid, {}).get("name", "")
+                        if mid:
+                            col_mid = list(rev_records[0].keys()).index("master_id") + 1
+                            col_mn  = list(rev_records[0].keys()).index("master_name") + 1
+                            reviews_ws.update_cell(i, col_mid, mid)
+                            reviews_ws.update_cell(i, col_mn, mn)
+                            # Also fix in-memory
+                            for r in new_reviews:
+                                if r["booking_id"] == bid:
+                                    r["master_id"]   = mid
+                                    r["master_name"] = mn
+        except Exception as repair_err:
+            log("warning", "review backfill skipped", error=str(repair_err))
+
     except Exception as e:
         log("error", "load_data failed", error=str(e))
 
@@ -637,7 +668,7 @@ async def api_post_review(req: Request):
             sheet  = db.worksheet("Bookings")
             all_rows = sheet.get_all_records()
             for row in all_rows:
-                if str(row.get("booking_id","")).strip() == booking_id:
+                if str(row.get("id", row.get("booking_id",""))).strip() == booking_id:
                     master_id   = str(row.get("master_id","")).strip()
                     master_name = MASTERS.get(master_id, {}).get("name", "")
                     break
