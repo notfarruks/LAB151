@@ -8,18 +8,20 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --green: #7DC242; --green-dark: #5A9A2E;
-  --bg: #0E0E0E; --bg2: #161616; --bg3: #1C1C1C;
-  --cream: #F0F0EC; --muted: #888; --border: rgba(255,255,255,0.07);
+  --green: #8FD62A; --green-dark: #6DB318;
+  --bg: #FFFFFF; --bg2: #F7FBF1; --bg3: #EEF8E0;
+  --cream: #111111; --muted: #6B7280; --border: rgba(0,0,0,0.08);
+  --border-green: rgba(143,214,42,0.35);
 }
 body {
-  background: var(--bg); color: var(--cream);
+  background: var(--bg2); color: var(--cream);
   font-family: 'Space Grotesk', sans-serif;
   min-height: 100vh; display: flex; flex-direction: column;
   -webkit-font-smoothing: antialiased;
 }
 header {
-  background: rgba(14,14,14,0.95); border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.94); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
   padding: 0 5vw; height: 64px; display: flex; align-items: center; justify-content: space-between;
 }
 .logo {
@@ -35,26 +37,27 @@ header {
   padding: 48px 20px;
 }
 .card {
-  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
   padding: 40px 36px; width: 100%; max-width: 480px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
 }
 .card-logo { text-align: center; margin-bottom: 10px; font-size: 24px; }
 .card-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 6px; color: var(--cream); }
 .card-sub { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 32px; }
 .field { margin-bottom: 20px; }
-.field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #aaa; margin-bottom: 8px; text-transform: uppercase; }
+.field label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
 .field input, .field textarea, .field select {
-  width: 100%; background: var(--bg3); border: 1px solid #2a2a2a;
+  width: 100%; background: var(--bg2); border: 1px solid #D1D5DB;
   color: var(--cream); font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-  padding: 12px 14px; border-radius: 6px; transition: border-color 0.2s; outline: none;
+  padding: 12px 14px; border-radius: 8px; transition: border-color 0.2s; outline: none;
   -webkit-appearance: none;
 }
-.field select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
-.field select option { background: #1C1C1C; }
-.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--green); }
+.field select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.field select option { background: #fff; color: #111; }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(143,214,42,0.12); }
 .field textarea { min-height: 100px; resize: vertical; }
 .star-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 4px; }
-.star-btn { font-size: 36px; cursor: pointer; color: #333; transition: color 0.15s, transform 0.1s; background: none; border: none; padding: 4px; line-height: 1; }
+.star-btn { font-size: 36px; cursor: pointer; color: #D1D5DB; transition: color 0.15s, transform 0.1s; background: none; border: none; padding: 4px; line-height: 1; }
 .star-btn.active { color: var(--green); transform: scale(1.15); }
 .star-btn:hover { color: var(--green); }
 .star-hint { text-align: center; font-size: 12px; color: var(--muted); height: 18px; margin-bottom: 20px; }
@@ -62,18 +65,19 @@ header {
   width: 100%; background: var(--green); color: #000;
   font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 14px; border: none; border-radius: 6px; cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  padding: 14px; border: none; border-radius: 8px; cursor: pointer;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+  box-shadow: 0 2px 12px rgba(143,214,42,0.25);
 }
-.btn-submit:hover { background: var(--green-dark); transform: translateY(-1px); }
-.btn-submit:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
-.msg { text-align: center; padding: 14px; border-radius: 6px; font-size: 14px; margin-top: 16px; }
-.msg.err { background: rgba(255,80,80,0.08); color: #f88; border: 1px solid rgba(255,80,80,0.2); }
+.btn-submit:hover { background: var(--green-dark); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(143,214,42,0.35); }
+.btn-submit:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; transform: none; box-shadow: none; }
+.msg { text-align: center; padding: 14px; border-radius: 8px; font-size: 14px; margin-top: 16px; }
+.msg.err { background: rgba(239,68,68,0.06); color: #DC2626; border: 1px solid rgba(239,68,68,0.2); }
 .done-wrap { text-align: center; }
 .done-icon { font-size: 56px; margin-bottom: 16px; }
-.done-title { font-size: 24px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+.done-title { font-size: 24px; font-weight: 700; color: var(--green-dark); margin-bottom: 8px; }
 .done-text { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.7; }
-.btn-home { display: inline-block; color: var(--cream); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-decoration: none; border: 1px solid #333; border-radius: 6px; padding: 10px 24px; transition: border-color 0.2s, color 0.2s; }
+.btn-home { display: inline-block; color: var(--cream); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-decoration: none; border: 1px solid #D1D5DB; border-radius: 8px; padding: 10px 24px; transition: border-color 0.2s, color 0.2s; }
 .btn-home:hover { border-color: var(--green); color: var(--green); }
 </style>
 </head>
