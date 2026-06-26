@@ -707,7 +707,10 @@ function renderTeam() {
     return;
   }
   const html = masters.map(m => {
-    const mRevs = reviewsData.filter(r => r.master_id === m.id);
+    const mRevs = reviewsData.filter(r =>
+      String(r.master_id) === String(m.id) ||
+      (r.master_name && r.master_name.trim().toLowerCase() === m.name.trim().toLowerCase())
+    );
     const avg   = mRevs.length
       ? (mRevs.reduce((s, r) => s + r.rating, 0) / mRevs.length).toFixed(1)
       : null;
