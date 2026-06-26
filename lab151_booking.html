@@ -176,13 +176,12 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fg);font-si
 /* MOBILE */
 @media(max-width:600px){
   body{overflow-x:hidden}
-  .header{padding:0 14px;gap:6px}
+  .header{padding:0 12px;gap:5px;height:54px}
+  .logo{font-size:15px}
   .logo span{display:none}
   .lang-btn{padding:4px 6px;font-size:10px}
-  #aboutLink{display:none!important}
-  /* Shrink manage button to emoji-only */
-  .manage-btn{font-size:0;padding:7px 10px;letter-spacing:0;min-width:36px}
-  .manage-btn .mg-label{display:none}
+  #aboutLink{font-size:10px!important;padding:4px 6px!important;letter-spacing:.04em!important}
+  .manage-btn{font-size:11px;padding:6px 10px;letter-spacing:.04em}
   /* OTP boxes smaller */
   .otp-box{width:46px;height:52px;font-size:20px}
   /* Progress labels smaller */
@@ -233,7 +232,7 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fg);font-si
       <button class="lang-btn" onclick="setLang('ru')">RU</button>
     </div>
     <a href="/" style="font-size:11px;font-weight:600;color:var(--stone);text-decoration:none;letter-spacing:.08em;padding:6px 10px;white-space:nowrap;transition:color .18s" onmouseover="this.style.color='var(--green-dark)'" onmouseout="this.style.color='var(--stone)'" id="aboutLink">Haqqımızda</a>
-    <button class="manage-btn" id="manageBtn" onclick="toggleManage()">📋<span class="mg-label"> MY BOOKINGS</span></button>
+    <button class="manage-btn" id="manageBtn" onclick="toggleManage()">Rezervasiyam</button>
   </div>
 </header>
 
@@ -484,7 +483,7 @@ const T = {
     mgContactSalon: 'Ləğv üçün salonla əlaqə saxlayın: +994 77 573 45 45 (kosmetologiya) | +994 77 443 45 45 (dırnaq & saç)',
     mgCancelledBadge: 'LƏĞV EDİLDİ',
     mgPastBadge: 'TAMAMLANDI',
-    myBookingsBtn: '📋 Rezervasiyam',
+    myBookingsBtn: 'Rezervasiyam',
     doneHome: '← Ana səhifəyə qayıt',
     mgRscEyebrow: 'Yeni vaxt seçin',
     mgRscTitle: 'Rezervasiyanı dəyişdir',
@@ -553,7 +552,7 @@ const T = {
     mgContactSalon: 'To cancel, contact the salon: +994 77 573 45 45 (cosmetology) | +994 77 443 45 45 (nails & hair)',
     mgCancelledBadge: 'CANCELLED',
     mgPastBadge: 'COMPLETED',
-    myBookingsBtn: '📋 My Bookings',
+    myBookingsBtn: 'My Bookings',
     doneHome: '← Back to home',
     mgRscEyebrow: 'Choose new time',
     mgRscTitle: 'Reschedule booking',
@@ -622,7 +621,7 @@ const T = {
     mgContactSalon: 'Для отмены свяжитесь с нами: +994 77 573 45 45 (косметология) | +994 77 443 45 45 (ногти & волосы)',
     mgCancelledBadge: 'ОТМЕНЕНО',
     mgPastBadge: 'ЗАВЕРШЕНО',
-    myBookingsBtn: '📋 Мои записи',
+    myBookingsBtn: 'Мои записи',
     doneHome: '← На главную',
     mgRscEyebrow: 'Выберите новое время',
     mgRscTitle: 'Перенос записи',
@@ -720,7 +719,7 @@ function applyTranslations() {
   const noDateEl = document.getElementById('noDate');
   if (noDateEl) noDateEl.textContent = tx.noDate;
   const manageBtnEl = document.getElementById('manageBtn');
-  if (manageBtnEl) manageBtnEl.innerHTML = '📋<span class="mg-label"> ' + tx.myBookingsBtn.replace(/^📋\s*/,'') + '</span>';
+  if (manageBtnEl) manageBtnEl.textContent = tx.myBookingsBtn;
   const aboutEl = document.getElementById('aboutLink');
   if (aboutEl) aboutEl.textContent = {az:'Haqqımızda', en:'About us', ru:'О нас'}[lang] || 'Haqqımızda';
   updateBottomBar();
