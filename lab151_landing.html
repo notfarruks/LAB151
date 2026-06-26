@@ -235,43 +235,113 @@ section { padding: 100px 5vw; }
   letter-spacing: -0.01em;
 }
 
-/* ── SERVICES ── */
+/* ── SERVICES / BILLBOARD ── */
 .services-section {
-  background: var(--bg2);
+  background: var(--bg);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+.billboard {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #111;
+  user-select: none;
 }
-.service-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 24px 20px;
+.bb-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.75s ease;
   text-decoration: none;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  display: block;
+  pointer-events: none;
 }
-.service-card:hover {
-  border-color: var(--green);
-  box-shadow: 0 4px 20px rgba(143,214,42,0.15);
-  transform: translateY(-2px);
+.bb-slide.active { opacity: 1; pointer-events: all; }
+.bb-slide img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
 }
-.service-icon { font-size: 28px; }
-.service-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  letter-spacing: 0.02em;
-  text-transform: capitalize;
+.bb-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(0,0,0,0.78) 0%,
+    rgba(0,0,0,0.40) 50%,
+    rgba(0,0,0,0.10) 100%
+  );
 }
-.service-count { font-size: 11px; color: var(--muted); }
+.bb-content {
+  position: absolute;
+  bottom: 0; left: 0;
+  padding: 0 60px 52px;
+}
+.bb-tag {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--green); margin-bottom: 10px;
+}
+.bb-name {
+  font-size: clamp(36px, 4.5vw, 62px);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.bb-count {
+  font-size: 14px;
+  color: rgba(255,255,255,0.55);
+}
+.bb-cta {
+  display: inline-block;
+  margin-top: 20px;
+  background: var(--green);
+  color: #000;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 10px 22px; border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(143,214,42,0.3);
+}
+.bb-dots {
+  position: absolute;
+  bottom: 28px; right: 48px;
+  display: flex; gap: 8px; z-index: 10;
+}
+.bb-dot {
+  height: 5px; width: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.3);
+  border: none; cursor: pointer;
+  transition: all 0.35s ease;
+  padding: 0;
+}
+.bb-dot.active { background: var(--green); width: 26px; }
+.bb-arrows {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  padding: 0 22px; z-index: 10;
+  pointer-events: none;
+}
+.bb-arr {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff; font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: all;
+  transition: background 0.2s;
+  line-height: 1;
+}
+.bb-arr:hover { background: var(--green); color: #000; border-color: var(--green); }
 
 /* ── TEAM ── */
 .team-grid {
@@ -473,8 +543,8 @@ footer {
 <section class="services-section" id="services">
   <div class="eyebrow" id="svcEyebrow">Xidmətlər</div>
   <div class="section-title" id="svcTitle">Nə edirik</div>
-  <div class="services-grid" id="servicesGrid">
-    <!-- populated by JS -->
+  <div class="billboard" id="servicesGrid">
+    <!-- slides populated by JS -->
   </div>
 </section>
 
@@ -518,7 +588,7 @@ footer {
       <div class="eyebrow" id="revEyebrow">Rəylər</div>
       <div class="section-title" style="margin-bottom:0" id="revTitle">Müştərilərimiz deyir</div>
     </div>
-    <a href="/review" class="btn-book" id="leaveReviewBtn" style="flex-shrink:0">⭐ Rəy bildir</a>
+    <a href="/review" class="btn-book" id="leaveReviewBtn" style="flex-shrink:0">Rəy bildir</a>
   </div>
   <div class="reviews-grid" id="reviewsGrid"><!-- populated by JS --></div>
 </section>
@@ -586,7 +656,7 @@ const TX = {
     s2h:'Məlumatları daxil edin', s2p:'Adınızı, nömrənizi və e-poçtunuzu daxil edin. Bir dəqiqədən az çəkir.',
     s3h:'Təsdiq alın', s3p:'E-poçtunuza ani təsdiq gəlir. Görüşdən 24 saat əvvəl xatırlatma göndərilir.',
     teamEyebrow:'Komanda', teamTitle:'Mütəxəssislərimiz',
-    revEyebrow:'Rəylər', revTitle:'Müştərilərimiz deyir', noReviews:'Hələ rəy yoxdur.', leaveReview:'⭐ Rəy bildir',
+    revEyebrow:'Rəylər', revTitle:'Müştərilərimiz deyir', noReviews:'Hələ rəy yoxdur.', leaveReview:'Rəy bildir',
     ctcEyebrow:'Əlaqə', ctcTitle:'Bizi tapın',
     lblLocation:'Ünvan', ctcAddr:'Bakı White City, Bakı', ctcMap:'🗺 Google Maps →',
     lblHours:'İş saatları', lblContact:'Nömrələr',
@@ -610,7 +680,7 @@ const TX = {
     s2h:'Enter your details', s2p:'Enter your name, phone number and email. Takes less than a minute.',
     s3h:'Get confirmed', s3p:'An instant confirmation email is sent to you. A reminder follows 24 hours before your appointment.',
     teamEyebrow:'Team', teamTitle:'Our Specialists',
-    revEyebrow:'Reviews', revTitle:'What our clients say', noReviews:'No reviews yet.', leaveReview:'⭐ Leave a review',
+    revEyebrow:'Reviews', revTitle:'What our clients say', noReviews:'No reviews yet.', leaveReview:'Leave a review',
     ctcEyebrow:'Contact', ctcTitle:'Find us',
     lblLocation:'Address', ctcAddr:'Baku White City, Baku', ctcMap:'🗺 Google Maps →',
     lblHours:'Working hours', lblContact:'Phone numbers',
@@ -634,7 +704,7 @@ const TX = {
     s2h:'Введите данные', s2p:'Укажите имя, номер телефона и email. Займёт меньше минуты.',
     s3h:'Получите подтверждение', s3p:'На email придёт мгновенное подтверждение. За 24 часа до визита — напоминание.',
     teamEyebrow:'Команда', teamTitle:'Наши специалисты',
-    revEyebrow:'Отзывы', revTitle:'Что говорят клиенты', noReviews:'Отзывов пока нет.', leaveReview:'⭐ Оставить отзыв',
+    revEyebrow:'Отзывы', revTitle:'Что говорят клиенты', noReviews:'Отзывов пока нет.', leaveReview:'Оставить отзыв',
     ctcEyebrow:'Контакт', ctcTitle:'Найдите нас',
     lblLocation:'Адрес', ctcAddr:'Баку Уайт Сити, Баку', ctcMap:'🗺 Google Maps →',
     lblHours:'Часы работы', lblContact:'Телефоны',
@@ -648,10 +718,29 @@ const TX = {
   }
 };
 
-const CAT_ICONS = {
-  'lazer epilasiya':'✨','icoone':'💆','kirpik':'👁',
-  'kosmetologiya':'💉','manikür':'💅','pedikür':'🦶',
-  'saç studio':'✂️','masaj':'🤲','qaş barı':'🪄'
+const CAT_IMAGES = {
+  'icoone':                   'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&h=560&fit=crop&q=80',
+  'lazer epilasiya':          'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1200&h=560&fit=crop&q=80',
+  'lazer epilasiya (kişi)':   'https://images.unsplash.com/photo-1493256338651-d82f7acb2b38?w=1200&h=560&fit=crop&q=80',
+  'lazer silinmə':            'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=1200&h=560&fit=crop&q=80',
+  'saç studio':               'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&h=560&fit=crop&q=80',
+  'kirpik':                   'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=1200&h=560&fit=crop&q=80',
+  'kosmetologiya':            'https://images.unsplash.com/photo-1559599101-f09722fb4948?w=1200&h=560&fit=crop&q=80',
+  'manikür/pedikür':          'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&h=560&fit=crop&q=80',
+  'masaj':                    'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&h=560&fit=crop&q=80',
+  'qaş barı':                 'https://images.unsplash.com/photo-1487412947147-5cebf100d293?w=1200&h=560&fit=crop&q=80',
+};
+const CAT_GRADIENTS = {
+  'icoone':                   'linear-gradient(135deg,#1a3a2a,#2d6a4f)',
+  'lazer epilasiya':          'linear-gradient(135deg,#0d1b2a,#1b263b)',
+  'lazer epilasiya (kişi)':   'linear-gradient(135deg,#1a1a2e,#16213e)',
+  'lazer silinmə':            'linear-gradient(135deg,#2d2d2d,#111)',
+  'saç studio':               'linear-gradient(135deg,#2c1654,#4a1942)',
+  'kirpik':                   'linear-gradient(135deg,#1a0533,#3d1152)',
+  'kosmetologiya':            'linear-gradient(135deg,#0f3443,#34e89e30)',
+  'manikür/pedikür':          'linear-gradient(135deg,#3d0030,#7b002a)',
+  'masaj':                    'linear-gradient(135deg,#1a2a1a,#2d4a2d)',
+  'qaş barı':                 'linear-gradient(135deg,#2a1f3d,#4a3060)',
 };
 
 let lang = 'az';
@@ -737,22 +826,70 @@ async function loadData() {
   }
 }
 
-// ── Services grid ─────────────────────────────────────────────────────────────
+// ── Billboard slider ──────────────────────────────────────────────────────────
+let bbIdx = 0;
+let bbTimer = null;
+
 function renderServices() {
   if (!appData) return;
   const tx = TX[lang];
   const cats = appData.categories || [];
-  const html = cats.map(cat => {
+  if (!cats.length) return;
+
+  const slides = cats.map((cat, i) => {
+    const key   = cat.toLowerCase();
     const count = (appData.services || []).filter(s => s.category === cat).length;
-    const icon  = CAT_ICONS[cat.toLowerCase()] || '✨';
     const label = cat.charAt(0).toUpperCase() + cat.slice(1);
-    return `<a href="/book" class="service-card">
-      <div class="service-icon">${icon}</div>
-      <div class="service-name">${label}</div>
-      <div class="service-count">${count}${tx.svcAt}</div>
+    const img   = CAT_IMAGES[key] || '';
+    const grad  = CAT_GRADIENTS[key] || 'linear-gradient(135deg,#111,#333)';
+    return `<a href="/book" class="bb-slide${i === 0 ? ' active' : ''}" style="background:${grad}">
+      ${img ? `<img src="${img}" alt="${label}" loading="${i === 0 ? 'eager' : 'lazy'}">` : ''}
+      <div class="bb-overlay"></div>
+      <div class="bb-content">
+        <div class="bb-tag">${tx.svcEyebrow}</div>
+        <div class="bb-name">${label}</div>
+        <div class="bb-count">${count}${tx.svcAt}</div>
+        <div class="bb-cta">${tx.bookNow} →</div>
+      </div>
     </a>`;
   }).join('');
-  document.getElementById('servicesGrid').innerHTML = html || '<p style="color:var(--muted)">Yüklənir...</p>';
+
+  const dots = cats.map((_, i) =>
+    `<button class="bb-dot${i === 0 ? ' active' : ''}" onclick="bbGo(${i})"></button>`
+  ).join('');
+
+  document.getElementById('servicesGrid').innerHTML = `
+    ${slides}
+    <div class="bb-arrows">
+      <button class="bb-arr" onclick="bbPrev(event)">&#8249;</button>
+      <button class="bb-arr" onclick="bbNext(event)">&#8250;</button>
+    </div>
+    <div class="bb-dots">${dots}</div>
+  `;
+
+  bbIdx = 0;
+  startBillboard();
+}
+
+function bbGo(idx) {
+  const slides = document.querySelectorAll('.bb-slide');
+  const dots   = document.querySelectorAll('.bb-dot');
+  if (!slides.length) return;
+  bbIdx = ((idx % slides.length) + slides.length) % slides.length;
+  slides.forEach((s, i) => s.classList.toggle('active', i === bbIdx));
+  dots.forEach((d, i)   => d.classList.toggle('active', i === bbIdx));
+}
+
+function bbNext(e) { if (e) e.preventDefault(); bbGo(bbIdx + 1); resetBbTimer(); }
+function bbPrev(e) { if (e) e.preventDefault(); bbGo(bbIdx - 1); resetBbTimer(); }
+
+function resetBbTimer() {
+  clearInterval(bbTimer);
+  bbTimer = setInterval(() => bbGo(bbIdx + 1), 4500);
+}
+function startBillboard() {
+  clearInterval(bbTimer);
+  bbTimer = setInterval(() => bbGo(bbIdx + 1), 4500);
 }
 
 // ── Team grid ─────────────────────────────────────────────────────────────────
