@@ -726,7 +726,7 @@ async def api_dates(master_id: str, service_id: str = ""):
 # ── POST /api/book ─────────────────────────────────────────────────────────────
 class BookingRequest(BaseModel):
     name:       str
-    phone:      str
+    phone:      str = ""
     email:      str = ""
     service_id: str
     master_id:  str
@@ -738,9 +738,10 @@ class BookingRequest(BaseModel):
 async def api_book(req: BookingRequest):
     name  = req.name.strip()[:60]
     phone = req.phone.strip()[:20]
+    email = req.email.strip()[:100]
 
-    if not name or not phone:
-        raise HTTPException(400, "Name and phone are required")
+    if not name or (not phone and not email):
+        raise HTTPException(400, "Name and at least phone or email are required")
     if req.service_id not in SERVICES:
         raise HTTPException(400, "Invalid service")
 
