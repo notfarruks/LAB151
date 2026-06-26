@@ -638,15 +638,6 @@ async def api_post_review(req: Request):
             all_rows = sheet.get_all_records()
             for row in all_rows:
                 if str(row.get("booking_id","")).strip() == booking_id:
-                    # Date check: only allow review on or after appointment date
-                    appt_date_str = str(row.get("date","")).strip()
-                    if appt_date_str:
-                        try:
-                            appt_date = datetime.strptime(appt_date_str, "%Y-%m-%d").date()
-                            if datetime.now().date() < appt_date:
-                                return JSONResponse({"ok": False, "error": "too_early"})
-                        except ValueError:
-                            pass
                     master_id   = str(row.get("master_id","")).strip()
                     master_name = MASTERS.get(master_id, {}).get("name", "")
                     break
