@@ -279,7 +279,7 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fg);font-si
     </div>
     <div class="form-field">
       <label class="form-label" id="lPhone"></label>
-      <input class="form-input" id="iPhone" type="tel" maxlength="20" oninput="onPhoneInput(this)">
+      <input class="form-input" id="iPhone" type="tel" maxlength="20" onkeydown="onPhoneKey(event)" oninput="onPhoneInput(this)">
       <div class="form-hint" id="hPhone"></div>
       <div class="err-msg" id="ePhone"></div>
     </div>
@@ -330,7 +330,7 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fg);font-si
     </div>
     <div class="form-field" style="margin-top:8px">
       <label class="form-label" id="mgPhoneLbl"></label>
-      <input class="form-input" id="mgPhoneInput" type="tel" maxlength="20" oninput="onPhoneInput(this);mgClearEmail()">
+      <input class="form-input" id="mgPhoneInput" type="tel" maxlength="20" onkeydown="onPhoneKey(event)" oninput="onPhoneInput(this);mgClearEmail()">
       <div class="form-hint" id="mgPhoneHint"></div>
     </div>
     <div style="text-align:center;color:var(--stone);font-size:12px;margin:6px 0" id="mgOrLbl">— və ya —</div>
@@ -1369,13 +1369,13 @@ function formatAzPhone(raw) {
   return out;
 }
 
+let _phoneDel = false;
+function onPhoneKey(e)  { _phoneDel = e.key === 'Backspace' || e.key === 'Delete'; }
 function onPhoneInput(el) {
-  const pos = el.selectionStart;
-  const old = el.value;
-  const formatted = formatAzPhone(old);
-  if (formatted !== old) {
+  if (_phoneDel) { _phoneDel = false; return; }   // let browser handle deletion naturally
+  const formatted = formatAzPhone(el.value);
+  if (formatted !== el.value) {
     el.value = formatted;
-    // keep cursor near end while typing
     el.selectionStart = el.selectionEnd = formatted.length;
   }
 }
