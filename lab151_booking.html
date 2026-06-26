@@ -1482,7 +1482,7 @@ async function sendEmailCode() {
       document.getElementById('otpCodeRow').style.display = '';
       document.getElementById('otpLabel').textContent = t('otpLabel');
       document.getElementById('ob0').focus();
-      startOtpCountdown(60);
+      startOtpCountdown(120);
     } else if (r.status === 429) {
       sendBtn.textContent = t('otpTooMany'); sendBtn.disabled = true;
     } else {
