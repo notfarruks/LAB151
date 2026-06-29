@@ -320,7 +320,10 @@ body{background:var(--cream);color:var(--charcoal);font-family:var(--fg);font-si
           <button type="button" class="otp-send-btn" id="otpSendBtn" onclick="sendEmailCode()" disabled></button>
         </div>
         <div id="otpCodeRow" style="display:none;margin-top:12px">
-          <div class="form-label" id="otpLabel" style="margin-bottom:10px;display:block"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="form-label" id="otpLabel" style="margin-bottom:0"></div>
+            <button type="button" id="otpChangeBtn" onclick="resetOtp()" style="background:none;border:none;color:var(--stone);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fg);text-decoration:underline;padding:0;letter-spacing:.04em"></button>
+          </div>
           <div class="otp-boxes">
             <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" id="ob0" oninput="onOtpInput(0)" onkeydown="onOtpKey(event,0)">
             <input class="otp-box" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" id="ob1" oninput="onOtpInput(1)" onkeydown="onOtpKey(event,1)">
@@ -448,6 +451,7 @@ const T = {
     eName: 'Adınızı daxil edin', ePhone: 'Düzgün telefon nömrəsi daxil edin', eEmail: 'Düzgün e-poçt daxil edin',
     eContact: '',
     otpSendBtn: 'Kod göndər', otpSending: 'Göndərilir…',
+    otpChange: 'E-poçtu dəyiş',
     otpLabel: '4-rəqəmli kodu daxil edin',
     otpWrong: 'Kod yanlışdır. Yenidən cəhd edin.',
     otpExpired: 'Kodun vaxtı bitib. Yeni kod göndərin.',
@@ -517,6 +521,7 @@ const T = {
     eName: 'Please enter your name', ePhone: 'Please enter a valid phone number', eEmail: 'Please enter a valid email',
     eContact: '',
     otpSendBtn: 'Send Code', otpSending: 'Sending…',
+    otpChange: 'Change email',
     otpLabel: 'Enter the 4-digit code',
     otpWrong: 'Incorrect code. Please try again.',
     otpExpired: 'Code expired. Send a new one.',
@@ -586,6 +591,7 @@ const T = {
     eName: 'Введите ваше имя', ePhone: 'Введите корректный номер', eEmail: 'Введите корректный email',
     eContact: '',
     otpSendBtn: 'Получить код', otpSending: 'Отправляем…',
+    otpChange: 'Изменить почту',
     otpLabel: 'Введите 4-значный код',
     otpWrong: 'Неверный код. Попробуйте снова.',
     otpExpired: 'Код истёк. Отправьте новый.',
@@ -1418,6 +1424,8 @@ function renderCheckout() {
   if (sendBtn && !emailVerified) sendBtn.textContent = t('otpSendBtn');
   const otpLbl = document.getElementById('otpLabel');
   if (otpLbl) otpLbl.textContent = t('otpLabel');
+  const otpChangeBtn = document.getElementById('otpChangeBtn');
+  if (otpChangeBtn) otpChangeBtn.textContent = t('otpChange');
   const otpVerMsg = document.getElementById('otpVerifiedMsg');
   if (otpVerMsg) otpVerMsg.textContent = t('otpVerified');
   const resendBtn = document.getElementById('otpResendBtn');
@@ -1496,6 +1504,7 @@ async function sendEmailCode() {
       document.getElementById('otpSendRow').style.display = 'none';
       document.getElementById('otpCodeRow').style.display = '';
       document.getElementById('otpLabel').textContent = t('otpLabel');
+      document.getElementById('otpChangeBtn').textContent = t('otpChange');
       document.getElementById('ob0').focus();
       startOtpCountdown(120);
     } else if (r.status === 429) {
