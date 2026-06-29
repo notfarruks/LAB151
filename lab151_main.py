@@ -753,25 +753,49 @@ async def api_send_email_code(req: EmailCodeRequest):
     code = str(random.randint(1000, 9999))
     redis_client.setex(f"lab151:email-code:{email}", 600, code)  # 10-minute TTL
 
-    html = f"""
-<div style="font-family:Arial,sans-serif;max-width:420px;margin:0 auto;padding:28px;color:#222">
-  <h2 style="font-size:20px;margin-bottom:4px">LAB151</h2>
-  <p style="color:#888;font-size:12px;margin-top:0">beauty chargers</p>
-  <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-  <p style="font-size:15px;margin-bottom:24px">Your verification code:</p>
-  <div style="font-size:40px;font-weight:700;letter-spacing:10px;color:#111;text-align:center;
-              background:#F2FCE8;border:1px solid #C8EE8A;border-radius:8px;padding:20px 0;margin-bottom:24px">
-    {code}
-  </div>
-  <p style="font-size:13px;color:#888;line-height:1.6">
-    Enter this code on the booking page to verify your email.<br>
-    Expires in <b>10 minutes</b>. Do not share this code with anyone.
-  </p>
-  <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-  <p style="font-size:11px;color:#aaa">LAB151 · Bakı White City, Bakı</p>
-</div>"""
+    html = f"""<!DOCTYPE html>
+<html lang="az">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LAB151 — Təsdiq kodu</title></head>
+<body style="margin:0;padding:0;background:#F7FBF1;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F7FBF1;padding:32px 16px">
+  <tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;background:#ffffff;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden">
+      <!-- Header -->
+      <tr><td style="background:#8FD62A;padding:20px 28px">
+        <span style="font-family:'Courier New',monospace;font-size:18px;font-weight:700;color:#000;letter-spacing:2px">LAB151</span>
+        <span style="font-size:10px;color:rgba(0,0,0,0.6);letter-spacing:3px;text-transform:uppercase;display:block;margin-top:2px">beauty chargers</span>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:32px 28px">
+        <p style="margin:0 0 8px;font-size:15px;color:#111;font-weight:600">Salam!</p>
+        <p style="margin:0 0 24px;font-size:14px;color:#555;line-height:1.6">
+          LAB151 rezervasiya sistemindən sizin üçün e-poçt təsdiq kodunuz:
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td align="center" style="background:#F2FCE8;border:1px solid #C8EE8A;border-radius:10px;padding:24px 0">
+            <span style="font-family:'Courier New',monospace;font-size:44px;font-weight:700;letter-spacing:12px;color:#111">{code}</span>
+          </td></tr>
+        </table>
+        <p style="margin:20px 0 0;font-size:13px;color:#888;line-height:1.7">
+          Bu kodu rezervasiya səhifəsində daxil edin.<br>
+          Kodun etibarlılıq müddəti: <strong style="color:#555">10 dəqiqə</strong>.<br>
+          Bu kodu heç kimlə paylaşmayın.
+        </p>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:16px 28px">
+        <p style="margin:0;font-size:11px;color:#9CA3AF">
+          LAB151 · Bakı White City, Bakı · Bu mesaj avtomatik göndərilib, cavablamayın.
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>"""
 
-    ok = await send_email(email, "LAB151 — Verification Code", html)
+    ok = await send_email(email, "LAB151: E-poçt təsdiq kodu", html)
     if not ok:
         log("warning", "email-code send failed", email=email)
         # Still return ok in dev so flow works without SendGrid configured
